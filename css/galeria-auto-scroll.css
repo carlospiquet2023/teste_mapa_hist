@@ -1,0 +1,183 @@
+/* 
+==========================================================================
+🖼️ GALERIA COM ROLAGEM AUTOMÁTICA - MAPA HISTÓRICO
+==========================================================================
+
+📝 DESCRIÇÃO:
+   Estilos para a galeria de imagens com rolagem automática ao passar o mouse
+   para os locais históricos do Rio de Janeiro
+
+🏗️ COMPONENTES:
+   - Container da galeria
+   - Scroll horizontal com animação automática
+   - Indicadores de navegação
+   - Transições suaves entre imagens
+
+👨‍💻 AUTOR: Carlos A O Piquet
+📅 ÚLTIMA ATUALIZAÇÃO: 2025
+
+==========================================================================
+*/
+
+/* Container principal da galeria */
+.imagens-galeria-container {
+    width: 100%;
+    position: relative;
+    margin: 16px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Container de rolagem horizontal */
+.imagens-galeria-scroll {
+    display: flex;
+    overflow-x: auto; /* permite rolar para ver as próximas imagens */
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    height: 220px;
+    position: relative;
+    width: 100%;
+    -webkit-overflow-scrolling: touch; /* rolagem suave no iOS */
+}
+
+/* Esconde a barra de rolagem */
+.imagens-galeria-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+/* Cada item da imagem */
+.imagem-item {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    position: relative;
+    height: 220px;
+    transition: transform 0.5s ease;
+    min-width: 100%; /* Garante que a largura mínima seja de 100% */
+    display: block; /* Garante que o elemento seja exibido */
+    left: 0;
+    opacity: 1;
+}
+
+/* Estilo da imagem */
+.imagem-galeria {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+    display: block; /* Garante que a imagem seja exibida */
+}
+
+/* Estilos específicos para a galeria em popups */
+.popup-galeria .imagens-galeria-container {
+    margin: 8px 0;
+    max-width: 300px;
+}
+
+.popup-galeria .imagens-galeria-scroll,
+.popup-galeria .imagem-item {
+    height: 150px;
+}
+
+.leaflet-popup-content .imagens-galeria-container {
+    width: 100%;
+    margin: 8px 0 12px;
+}
+
+.leaflet-popup-content .imagens-galeria-scroll {
+    height: 150px;
+}
+
+/* Controles da galeria */
+.galeria-controles {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    z-index: 5;
+}
+
+/* Indicadores de navegação */
+.galeria-indicador {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.galeria-indicador.ativo,
+.galeria-indicador[data-index="0"] {
+    background-color: #ffffff;
+}
+
+/* Animação de rolagem automática ao passar o mouse */
+@keyframes slideRight {
+    0%, 25% { transform: translateX(0); }
+    33%, 58% { transform: translateX(-100%); }
+    66%, 91% { transform: translateX(-200%); }
+    100% { transform: translateX(0); }
+}
+
+/* Configuração: sem animação por transform (evita conflito no popup) */
+.imagens-galeria-scroll {
+    animation: none;
+    transition: transform 0.5s ease;
+}
+
+/* Sem animação no hover (vamos usar scroll via JS) */
+.imagens-galeria-container:hover .imagens-galeria-scroll {
+    animation: none;
+}
+
+/* Popups: garantir que não haja animação */
+.leaflet-popup-content .imagens-galeria-scroll {
+    animation: none;
+}
+
+.leaflet-popup-content .imagens-galeria-container:hover .imagens-galeria-scroll {
+    animation: none;
+}
+
+/* Garante que todas as imagens estejam visíveis na galeria */
+.imagens-galeria-scroll .imagem-item {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 768px) {
+    .imagens-galeria-scroll {
+        height: 180px;
+    }
+    
+    .imagem-item {
+        height: 180px;
+    }
+    
+    .galeria-controles {
+        bottom: 5px;
+    }
+    
+    /* Ajustes específicos para mobile */
+    .imagens-galeria-container {
+        touch-action: pan-x;
+    }
+    
+    /* Sem animação automática no mobile */
+    .leaflet-popup-content .imagens-galeria-scroll {
+        animation: none !important;
+    }
+    
+    /* Garante que todas as imagens sejam visíveis */
+    .imagem-item {
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+}

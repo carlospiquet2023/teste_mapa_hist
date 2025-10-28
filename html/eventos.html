@@ -1,0 +1,3341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Frequência Contínua</title>
+    
+    <!-- 
+    ═══════════════════════════════════════════════════════════════════════════════
+    
+    SISTEMA DE GESTÃO DE FREQUÊNCIA ENTERPRISE
+    
+    Copyright © 2025 Carlos Antonio de Oliveira Piquet
+    Todos os direitos reservados.
+    
+    Desenvolvedor: Carlos Antonio de Oliveira Piquet
+    E-mail: carlospiquet.projetos@gmail.com
+    Versão: 1.0
+    Data: 26 de outubro de 2025
+    
+    ═══════════════════════════════════════════════════════════════════════════════
+    
+    AVISO LEGAL:
+    Este software é proprietário e protegido por direitos autorais conforme:
+    - Lei nº 9.609/98 (Lei do Software)
+    - Lei nº 9.610/98 (Lei de Direitos Autorais)
+    - Lei nº 13.709/18 (LGPD)
+    
+    O uso não autorizado, reprodução, distribuição, modificação ou 
+    comercialização deste software é estritamente proibido e pode resultar 
+    em responsabilização civil e criminal.
+    
+    Para licenciamento comercial, suporte ou dúvidas:
+    📧 carlospiquet.projetos@gmail.com
+    
+    Consulte os arquivos LICENSE.md e TERMOS_DE_USO.md para informações completas.
+    
+    ═══════════════════════════════════════════════════════════════════════════════
+    -->
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- jsPDF (PDF Core) e AutoTable (Tabelas) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    
+    <!-- SheetJS (Ler Excel) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Animate.css para animações -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    
+    <!-- SCRIPT DE PROTEÇÃO - Verificar autenticação ANTES de carregar a página -->
+    <script>
+        (function() {
+            'use strict';
+            const SESSION_KEY = 'sistema_eventos_authenticated';
+            
+            function checkAuthentication() {
+                try {
+                    const isAuthenticated = sessionStorage.getItem(SESSION_KEY);
+                    
+                    console.log('Verificando autenticação:', { isAuthenticated });
+                    
+                    if (isAuthenticated !== 'true') {
+                        // Não autenticado
+                        console.log('Usuário não autenticado, redirecionando para login');
+                        window.location.href = 'login.html';
+                        return false;
+                    }
+                    
+                    console.log('Sessão válida (expira ao fechar navegador)');
+                    return true;
+                } catch (error) {
+                    console.error('Erro na verificação de autenticação:', error);
+                    window.location.href = 'login.html';
+                    return false;
+                }
+            }
+            
+            // Verificar imediatamente
+            if (!checkAuthentication()) {
+                // Parar carregamento da página
+                document.addEventListener('DOMContentLoaded', function(e) {
+                    e.stopImmediatePropagation();
+                }, true);
+            }
+        })();
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #60a5fa;
+            --success: #10b981;
+            --success-dark: #059669;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --warning: #f59e0b;
+            --info: #06b6d4;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Glassmorphism Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .glass-dark {
+            background: rgba(31, 41, 55, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        
+        /* Button Styles */
+        .btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            letter-spacing: 0.025em;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Card Hover Effects */
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Input File Custom */
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+        }
+        
+        .file-input-label:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .file-input-label.has-file {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-style: solid;
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            min-width: 300px;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-xl);
+            z-index: 9999;
+            animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        
+        .toast.hiding {
+            animation: slideOutRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+            box-shadow: var(--shadow-xl);
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+        
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+        
+        /* Table Enhancements */
+        .table-cell-input {
+            transition: all 0.2s;
+        }
+        
+        .table-cell-input:focus {
+            transform: scale(1.02);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Stats Card Animation */
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .stat-number {
+            animation: countUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 9999px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+        }
+        
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Pulse Animation */
+        @keyframes pulse-custom {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        
+        .pulse-custom {
+            animation: pulse-custom 2s ease-in-out infinite;
+        }
+        
+        /* Dark Mode Toggle */
+        .dark-mode {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        }
+        
+        .dark-mode .glass {
+            background: rgba(31, 41, 55, 0.95);
+            color: #f3f4f6;
+        }
+        
+        /* Responsive Table */
+        @media (max-width: 768px) {
+            .responsive-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+    
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+    
+    <!-- Main Container -->
+    <div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header Section -->
+        <header class="mb-12 animate__animated animate__fadeInDown">
+            <div class="glass rounded-3xl p-8 card-hover max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="text-center md:text-left">
+                        <div class="flex items-center gap-4 justify-center md:justify-start mb-2">
+                            <i class="fas fa-graduation-cap text-5xl gradient-text float-animation"></i>
+                            <h1 class="text-4xl md:text-5xl font-black gradient-text">
+                                Sistema de Frequência
+                            </h1>
+                        </div>
+                        <p class="text-gray-600 text-lg font-medium">
+                            Gestão inteligente de presença e eventos acadêmicos
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-4">
+                        <button id="btn-dark-mode" class="btn glass-dark text-white px-6 py-3 rounded-xl hover:scale-105 transition-transform">
+                            <i class="fas fa-moon mr-2"></i>
+                            <span>Modo Escuro</span>
+                        </button>
+                        <button id="btn-help" class="btn bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl hover:scale-105 transition-transform">
+                            <i class="fas fa-question-circle mr-2"></i>
+                            <span>Ajuda</span>
+                        </button>
+                        <button id="btn-logout" class="btn bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl hover:scale-105 transition-transform">
+                            <i class="fas fa-sign-out-alt mr-2"></i>
+                            <span>Sair</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Statistics Dashboard -->
+        <section id="stats-section" class="mb-12 max-w-7xl mx-auto animate__animated animate__fadeIn" style="display: none;">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Total Alunos -->
+                <div class="glass rounded-2xl p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-4 rounded-xl">
+                            <i class="fas fa-users text-white text-2xl"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</span>
+                    </div>
+                    <h3 class="text-4xl font-black text-gray-800 stat-number" id="stat-total-alunos">0</h3>
+                    <p class="text-sm font-medium text-gray-600 mt-1">Alunos Cadastrados</p>
+                </div>
+                
+                <!-- Total Eventos -->
+                <div class="glass rounded-2xl p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-gradient-to-br from-purple-500 to-purple-600 p-4 rounded-xl">
+                            <i class="fas fa-calendar-alt text-white text-2xl"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Eventos</span>
+                    </div>
+                    <h3 class="text-4xl font-black text-gray-800 stat-number" id="stat-total-eventos">0</h3>
+                    <p class="text-sm font-medium text-gray-600 mt-1">Eventos Criados</p>
+                </div>
+                
+                <!-- Taxa de Presença -->
+                <div class="glass rounded-2xl p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-gradient-to-br from-green-500 to-green-600 p-4 rounded-xl">
+                            <i class="fas fa-chart-line text-white text-2xl"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Presença</span>
+                    </div>
+                    <h3 class="text-4xl font-black text-gray-800 stat-number" id="stat-taxa-presenca">0%</h3>
+                    <p class="text-sm font-medium text-gray-600 mt-1">Taxa Média</p>
+                </div>
+                
+                <!-- Total Registros -->
+                <div class="glass rounded-2xl p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-gradient-to-br from-orange-500 to-orange-600 p-4 rounded-xl">
+                            <i class="fas fa-database text-white text-2xl"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Registros</span>
+                    </div>
+                    <h3 class="text-4xl font-black text-gray-800 stat-number" id="stat-total-registros">0</h3>
+                    <p class="text-sm font-medium text-gray-600 mt-1">Total de Registros</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            
+            <!-- Seção 1: Carregar Alunos -->
+            <div class="glass rounded-3xl p-8 card-hover animate__animated animate__fadeInLeft lg:col-span-1">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-xl">
+                        <i class="fas fa-upload text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Passo 1: Importar Alunos</h2>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">
+                            <i class="fas fa-file-excel mr-2 text-green-600"></i>
+                            Arquivo Excel (.xlsx, .xls)
+                        </label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="excel-file" accept=".xlsx, .xls" />
+                            <label for="excel-file" class="file-input-label" id="file-input-label">
+                                <i class="fas fa-cloud-upload-alt text-3xl mr-3"></i>
+                                <div>
+                                    <div class="font-bold text-lg">Clique para selecionar</div>
+                                    <div class="text-sm opacity-90">ou arraste o arquivo aqui</div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="mt-3 p-4 bg-blue-50 rounded-xl border-l-4 border-blue-500">
+                            <p class="text-xs font-medium text-blue-900">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                O arquivo deve conter as colunas <strong>"Nome"</strong> e <strong>"CPF"</strong>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <button id="load-excel" class="btn w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl">
+                        <i class="fas fa-file-import mr-2"></i>
+                        Carregar Lista de Alunos
+                    </button>
+                    
+                    <div id="import-feedback"></div>
+                    
+                    <!-- Progress Bar -->
+                    <div id="import-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p class="text-sm text-center mt-2 font-medium text-gray-600" id="progress-text">Processando...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção 2: Adicionar Eventos -->
+            <div class="glass rounded-3xl p-8 card-hover animate__animated animate__fadeInUp lg:col-span-2">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="bg-gradient-to-br from-green-500 to-green-600 p-3 rounded-xl">
+                        <i class="fas fa-calendar-plus text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Passo 2: Gerenciar Eventos</h2>
+                </div>
+                
+                <form id="form-evento" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="nome-evento" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-tag mr-2 text-purple-600"></i>
+                                Nome do Evento
+                            </label>
+                            <input type="text" id="nome-evento" required
+                                   class="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all"
+                                   placeholder="Ex: Workshop de Python">
+                        </div>
+                        <div>
+                            <label for="data-evento" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-calendar mr-2 text-blue-600"></i>
+                                Data do Evento
+                            </label>
+                            <input type="date" id="data-evento" required
+                                   class="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="horario-evento" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-clock mr-2 text-orange-600"></i>
+                                Horário de Início (Opcional)
+                            </label>
+                            <input type="time" id="horario-evento"
+                                   class="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-100 transition-all">
+                        </div>
+                        <div>
+                            <label for="horario-termino-evento" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-clock mr-2 text-indigo-600"></i>
+                                Horário de Término (Opcional)
+                            </label>
+                            <input type="time" id="horario-termino-evento"
+                                   class="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-6">
+                        <div>
+                            <label for="local-evento" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-map-marker-alt mr-2 text-red-600"></i>
+                                Local (Opcional)
+                            </label>
+                            <input type="text" id="local-evento"
+                                   class="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-red-500 focus:ring-4 focus:ring-red-100 transition-all"
+                                   placeholder="Ex: Sala 101">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        Adicionar Evento à Tabela
+                    </button>
+                </form>
+                
+                <!-- Lista de Eventos Recentes -->
+                <div id="eventos-recentes" class="mt-6" style="display: none;">
+                    <h3 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">
+                        <i class="fas fa-list mr-2"></i>
+                        Eventos Recentes
+                    </h3>
+                    <div id="eventos-recentes-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção 3: Tabela de Frequência -->
+        <div class="max-w-7xl mx-auto glass rounded-3xl p-8 animate__animated animate__fadeInRight">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 p-3 rounded-xl">
+                        <i class="fas fa-table text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Quadro de Frequência</h2>
+                        <p class="text-sm text-gray-600 font-medium">Gestão completa de presenças</p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap gap-2 items-center">
+                    <button id="btn-add-aluno" class="btn bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Novo Aluno
+                    </button>
+                    <button id="btn-colunas" class="btn bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
+                        <i class="fas fa-columns mr-2"></i>
+                        Colunas
+                    </button>
+                    <button id="btn-filtros" class="btn bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
+                        <i class="fas fa-filter mr-2"></i>
+                        Filtros
+                    </button>
+                    <button id="btn-grafico" class="btn bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
+                        <i class="fas fa-chart-pie mr-2"></i>
+                        Gráficos
+                    </button>
+                    <button id="btn-resetar" class="btn bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
+                        <i class="fas fa-trash-restore mr-2"></i>
+                        Resetar Tudo
+                    </button>
+                    <button id="export-excel" class="btn bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
+                        <i class="fas fa-file-excel mr-2"></i>
+                        Excel
+                    </button>
+                    <button id="export-pdf" class="btn bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
+                        <i class="fas fa-file-pdf mr-2"></i>
+                        PDF
+                    </button>
+                    <button id="gerar-lista-assinatura" class="btn bg-gradient-to-r from-teal-500 to-teal-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-transform text-sm whitespace-nowrap">
+                        <i class="fas fa-clipboard-list mr-2"></i>
+                        Lista
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros (Hidden by default) -->
+            <div id="filtros-container" class="mb-6 p-6 bg-gray-50 rounded-2xl" style="display: none;">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Buscar Aluno</label>
+                        <input type="text" id="filtro-aluno" placeholder="Nome ou CPF..." 
+                               class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                        <select id="filtro-status" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all">
+                            <option value="">Todos</option>
+                            <option value="presente">Apenas Presentes</option>
+                            <option value="falta">Apenas Faltas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Evento</label>
+                        <select id="filtro-evento" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all">
+                            <option value="">Todos os Eventos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela -->
+            <div class="responsive-table overflow-x-auto rounded-2xl border-2 border-gray-100 shadow-inner">
+                <table class="w-full min-w-[1200px]">
+                    <thead id="tabela-cabecalho" class="bg-gradient-to-r from-gray-50 to-gray-100">
+                        <tr>
+                            <th class="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider sticky left-0 bg-gradient-to-r from-gray-50 to-gray-100 z-10 min-w-[200px] border-r-2 border-gray-200">
+                                <i class="fas fa-user mr-2"></i>Nome do Aluno
+                            </th>
+                            <th class="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[150px]">
+                                <i class="fas fa-id-card mr-2"></i>CPF
+                            </th>
+                            <th class="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[120px] bg-green-50">
+                                <i class="fas fa-check-circle mr-2 text-green-600"></i>Presenças
+                            </th>
+                            <th class="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[120px] bg-red-50">
+                                <i class="fas fa-times-circle mr-2 text-red-600"></i>Faltas
+                            </th>
+                            <th class="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[120px] bg-blue-50">
+                                <i class="fas fa-percentage mr-2 text-blue-600"></i>Taxa %
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela" class="bg-white divide-y-2 divide-gray-100">
+                        <tr>
+                            <td colspan="5" class="p-12 text-center">
+                                <div class="flex flex-col items-center justify-center gap-4">
+                                    <i class="fas fa-inbox text-gray-300 text-6xl"></i>
+                                    <p class="text-gray-400 font-semibold text-lg">Nenhum dado disponível</p>
+                                    <p class="text-gray-400 text-sm">Carregue uma lista de alunos e adicione eventos para começar</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginação -->
+            <div id="paginacao-container" class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4" style="display: none;">
+                <div class="text-sm font-medium text-gray-600">
+                    Mostrando <span id="pag-inicio">1</span> - <span id="pag-fim">10</span> de <span id="pag-total">0</span> registros
+                </div>
+                <div class="flex gap-2">
+                    <button id="pag-anterior" class="btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div id="pag-numeros" class="flex gap-2"></div>
+                    <button id="pag-proximo" class="btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-16 text-center text-white">
+            <div class="glass-dark rounded-2xl p-8 max-w-7xl mx-auto border-2 border-white/10">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="flex flex-col items-center gap-2">
+                        <i class="fas fa-shield-alt text-3xl text-blue-400"></i>
+                        <p class="text-sm font-semibold">Software Proprietário</p>
+                        <p class="text-xs opacity-75">Todos os direitos reservados</p>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <i class="fas fa-user-tie text-3xl text-purple-400"></i>
+                        <p class="text-sm font-semibold">Carlos Antonio de Oliveira Piquet</p>
+                        <p class="text-xs opacity-75">Desenvolvedor Full Stack</p>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <i class="fas fa-envelope text-3xl text-green-400"></i>
+                        <p class="text-sm font-semibold">Contato & Suporte</p>
+                        <a href="mailto:carlospiquet.projetos@gmail.com" class="text-xs opacity-75 hover:opacity-100 transition-opacity">
+                            carlospiquet.projetos@gmail.com
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="border-t border-white/10 pt-6">
+                    <p class="font-medium text-lg mb-2">
+                        <i class="fas fa-code mr-2"></i>
+                        Sistema de Gestão de Frequência Enterprise
+                    </p>
+                
+                    <p class="text-xs opacity-75 mb-2">
+                        <i class="fas fa-copyright mr-1"></i>
+                        Copyright © 2025 - Todos os direitos reservados
+                    </p>
+                    <p class="text-xs opacity-60">
+                        Versão 1.0 | Protegido por Lei nº 9.609/98 e Lei nº 9.610/98
+                    </p>
+                </div>
+                
+                <div class="mt-4 flex justify-center gap-4 text-xs opacity-60">
+                    <span><i class="fas fa-file-contract mr-1"></i>Consulte LICENSE.md</span>
+                    <span>|</span>
+                    <span><i class="fas fa-gavel mr-1"></i>Consulte TERMOS_DE_USO.md</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // ========================================
+        // SISTEMA DE FREQUÊNCIA ENTERPRISE v2.0
+        // Arquitetura: MVC Pattern + Observer Pattern
+        // ========================================
+
+        'use strict';
+
+        // --- SISTEMA DE AUTENTICAÇÃO ---
+        const SESSION_KEY = 'sistema_eventos_authenticated';
+
+        // Função de Logout
+        function logout() {
+            if (confirm('Tem certeza que deseja sair do sistema?')) {
+                sessionStorage.removeItem(SESSION_KEY);
+                // Limpar também qualquer localStorage antigo (migração)
+                localStorage.removeItem('sistema_eventos_authenticated');
+                localStorage.removeItem('sistema_eventos_session_expiry');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Adicionar event listener ao botão de logout
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnLogout = document.getElementById('btn-logout');
+            if (btnLogout) {
+                btnLogout.addEventListener('click', logout);
+            }
+
+            // Limpar sessões antigas do localStorage (migração de segurança)
+            localStorage.removeItem('sistema_eventos_authenticated');
+            localStorage.removeItem('sistema_eventos_session_expiry');
+            console.log('✓ Sessões antigas do localStorage removidas (agora usando sessionStorage)');
+        });
+
+        // Limpar sessão ao fechar o navegador (redundância de segurança)
+        window.addEventListener('beforeunload', () => {
+            console.log('Navegador sendo fechado - sessão será limpa automaticamente pelo sessionStorage');
+        });
+
+        // --- CONFIGURAÇÕES GLOBAIS ---
+        const CONFIG = {
+            ITEMS_PER_PAGE: 20,
+            AUTO_SAVE_INTERVAL: 30000, // 30 segundos
+            TOAST_DURATION: 4000,
+            LOCAL_STORAGE_KEY: 'sistema_frequencia_data',
+            VERSION: '2.0.0'
+        };
+
+        // --- UTILITÁRIOS ---
+        const Utils = {
+            // Formatar data
+            formatarData(dataString) {
+                if (!dataString) return 'N/D';
+                const date = new Date(dataString + 'T00:00:00');
+                return date.toLocaleDateString('pt-BR', { 
+                    day: '2-digit', 
+                    month: '2-digit', 
+                    year: 'numeric' 
+                });
+            },
+
+            // Formatar CPF
+            formatarCPF(cpf) {
+                if (!cpf) return '';
+                const cleaned = String(cpf).replace(/\D/g, '');
+                return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            },
+
+            // Gerar ID único
+            gerarId() {
+                return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            },
+
+            // Debounce
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            },
+
+            // Calcular porcentagem
+            calcularPorcentagem(presente, total) {
+                if (total === 0) return 0;
+                return Math.round((presente / total) * 100);
+            }
+        };
+
+        // --- SISTEMA DE NOTIFICAÇÕES ---
+        const ToastManager = {
+            show(message, type = 'info', duration = CONFIG.TOAST_DURATION) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast ${this.getToastClass(type)}`;
+                
+                const icon = this.getIcon(type);
+                toast.innerHTML = `
+                    <i class="${icon} text-2xl"></i>
+                    <div>
+                        <div class="font-bold">${this.getTitle(type)}</div>
+                        <div class="text-sm opacity-90">${message}</div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="ml-auto">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                container.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.classList.add('hiding');
+                    setTimeout(() => toast.remove(), 400);
+                }, duration);
+            },
+
+            getToastClass(type) {
+                const classes = {
+                    success: 'bg-gradient-to-r from-green-500 to-green-600 text-white',
+                    error: 'bg-gradient-to-r from-red-500 to-red-600 text-white',
+                    warning: 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white',
+                    info: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                };
+                return classes[type] || classes.info;
+            },
+
+            getIcon(type) {
+                const icons = {
+                    success: 'fas fa-check-circle',
+                    error: 'fas fa-exclamation-circle',
+                    warning: 'fas fa-exclamation-triangle',
+                    info: 'fas fa-info-circle'
+                };
+                return icons[type] || icons.info;
+            },
+
+            getTitle(type) {
+                const titles = {
+                    success: 'Sucesso!',
+                    error: 'Erro!',
+                    warning: 'Atenção!',
+                    info: 'Informação'
+                };
+                return titles[type] || titles.info;
+            }
+        };
+
+        // --- SISTEMA DE MODAIS ---
+        const ModalManager = {
+            currentCallback: null,
+
+            show(title, content, actions = []) {
+                const container = document.getElementById('modal-container');
+                container.innerHTML = `
+                    <div class="modal active" onclick="if(event.target === this) ModalManager.close()">
+                        <div class="modal-content animate__animated animate__zoomIn">
+                            <div class="flex items-center justify-between mb-6 pb-4 border-b-2">
+                                <h2 class="text-2xl font-bold gradient-text">${title}</h2>
+                                <button onclick="ModalManager.close()" class="text-gray-400 hover:text-gray-600 text-2xl">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="mb-6">${content}</div>
+                            <div class="flex gap-3 justify-end">
+                                ${actions.map((action, index) => `
+                                    <button id="modal-btn-${index}" class="btn ${action.class} px-6 py-3 rounded-xl font-semibold">
+                                        ${action.label}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Adicionar event listeners aos botões
+                actions.forEach((action, index) => {
+                    const btn = document.getElementById(`modal-btn-${index}`);
+                    if (btn) {
+                        btn.addEventListener('click', () => {
+                            if (action.callback) {
+                                action.callback();
+                            }
+                            if (action.closeAfter !== false) {
+                                this.close();
+                            }
+                        });
+                    }
+                });
+            },
+
+            close() {
+                const modal = document.querySelector('.modal');
+                if (modal) {
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        document.getElementById('modal-container').innerHTML = '';
+                    }, 300);
+                }
+            },
+
+            confirm(title, message, onConfirm) {
+                this.show(title, `<p class="text-gray-700">${message}</p>`, [
+                    {
+                        label: '<i class="fas fa-times mr-2"></i>Cancelar',
+                        class: 'bg-gray-300 text-gray-700 hover:bg-gray-400',
+                        callback: () => {}
+                    },
+                    {
+                        label: '<i class="fas fa-check mr-2"></i>Confirmar',
+                        class: 'bg-gradient-to-r from-red-500 to-red-600 text-white',
+                        callback: onConfirm
+                    }
+                ]);
+            }
+        };
+
+        // --- MODELO DE DADOS ---
+        class DataModel {
+            constructor() {
+                this.alunos = [];
+                this.eventos = [];
+                this.colunasVisiveis = ['nome', 'cpf', 'matricula', 'dataAdmissao', 'turma']; // Colunas padrão
+                this.camposPersonalizados = []; // Campos detectados automaticamente
+                this.observers = [];
+                this.loadFromStorage();
+            }
+
+            // Observer Pattern
+            subscribe(observer) {
+                this.observers.push(observer);
+            }
+
+            notify() {
+                this.observers.forEach(observer => observer());
+                this.saveToStorage();
+            }
+
+            // Gerenciar colunas visíveis
+            setColunasVisiveis(colunas) {
+                this.colunasVisiveis = colunas;
+                this.notify();
+            }
+
+            toggleColuna(coluna) {
+                const index = this.colunasVisiveis.indexOf(coluna);
+                if (index > -1) {
+                    this.colunasVisiveis.splice(index, 1);
+                } else {
+                    this.colunasVisiveis.push(coluna);
+                }
+                this.notify();
+            }
+
+            // Alunos
+            setAlunos(alunos) {
+                this.alunos = alunos;
+                this.ordenarAlunosAlfabeticamente();
+                this.notify();
+            }
+
+            addAluno(aluno) {
+                // Inicializar presença para eventos existentes
+                this.eventos.forEach(evento => {
+                    if (!aluno.attendance) aluno.attendance = {};
+                    aluno.attendance[evento.id] = { status: 'falta', obs: '' };
+                });
+                this.alunos.push(aluno);
+                this.ordenarAlunosAlfabeticamente();
+                this.notify();
+            }
+
+            ordenarAlunosAlfabeticamente() {
+                this.alunos.sort((a, b) => {
+                    const nomeA = (a.nome || '').toLowerCase().trim();
+                    const nomeB = (b.nome || '').toLowerCase().trim();
+                    return nomeA.localeCompare(nomeB, 'pt-BR');
+                });
+            }
+
+            removeAluno(alunoId) {
+                this.alunos = this.alunos.filter(a => a.id !== alunoId);
+                this.notify();
+            }
+
+            updateAluno(alunoId, data) {
+                const aluno = this.alunos.find(a => a.id === alunoId);
+                if (aluno) {
+                    Object.assign(aluno, data);
+                    this.notify();
+                }
+            }
+
+            // Eventos
+            addEvento(evento) {
+                this.eventos.push(evento);
+                // Inicializar presença para todos os alunos
+                this.alunos.forEach(aluno => {
+                    if (!aluno.attendance[evento.id]) {
+                        aluno.attendance[evento.id] = { status: 'falta', obs: '' };
+                    }
+                });
+                this.notify();
+            }
+
+            removeEvento(eventoId) {
+                this.eventos = this.eventos.filter(e => e.id !== eventoId);
+                this.alunos.forEach(aluno => {
+                    delete aluno.attendance[eventoId];
+                });
+                this.notify();
+            }
+
+            // Presença
+            updateAttendance(alunoId, eventoId, data) {
+                const aluno = this.alunos.find(a => a.id === alunoId);
+                if (aluno) {
+                    if (!aluno.attendance[eventoId]) {
+                        aluno.attendance[eventoId] = {};
+                    }
+                    Object.assign(aluno.attendance[eventoId], data);
+                    this.notify();
+                }
+            }
+
+            // Estatísticas
+            getStats() {
+                const totalAlunos = this.alunos.length;
+                const totalEventos = this.eventos.length;
+                const totalRegistros = totalAlunos * totalEventos;
+                
+                let totalPresencas = 0;
+                this.alunos.forEach(aluno => {
+                    Object.values(aluno.attendance).forEach(att => {
+                        if (att.status === 'presente') totalPresencas++;
+                    });
+                });
+                
+                const taxaPresenca = Utils.calcularPorcentagem(totalPresencas, totalRegistros);
+                
+                return {
+                    totalAlunos,
+                    totalEventos,
+                    totalRegistros,
+                    totalPresencas,
+                    taxaPresenca
+                };
+            }
+
+            // LocalStorage
+            saveToStorage() {
+                try {
+                    const data = {
+                        alunos: this.alunos,
+                        eventos: this.eventos,
+                        colunasVisiveis: this.colunasVisiveis,
+                        camposPersonalizados: this.camposPersonalizados,
+                        timestamp: Date.now(),
+                        version: CONFIG.VERSION
+                    };
+                    localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(data));
+                } catch (error) {
+                    console.error('Erro ao salvar dados:', error);
+                }
+            }
+
+            loadFromStorage() {
+                try {
+                    const data = localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY);
+                    if (data) {
+                        const parsed = JSON.parse(data);
+                        this.alunos = parsed.alunos || [];
+                        this.eventos = parsed.eventos || [];
+                        this.colunasVisiveis = parsed.colunasVisiveis || ['nome', 'cpf', 'matricula', 'dataAdmissao', 'turma'];
+                        this.camposPersonalizados = parsed.camposPersonalizados || [];
+                    }
+                } catch (error) {
+                    console.error('Erro ao carregar dados:', error);
+                }
+            }
+
+            clearData() {
+                this.alunos = [];
+                this.eventos = [];
+                localStorage.removeItem(CONFIG.LOCAL_STORAGE_KEY);
+                this.notify();
+            }
+        }
+
+        // --- CONTROLADOR DE IMPORTAÇÃO ---
+        class ImportController {
+            constructor(dataModel) {
+                this.dataModel = dataModel;
+                this.colunasDetectadas = [];
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                const fileInput = document.getElementById('excel-file');
+                const loadButton = document.getElementById('load-excel');
+                const fileLabel = document.getElementById('file-input-label');
+
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        fileLabel.classList.add('has-file');
+                        fileLabel.innerHTML = `
+                            <i class="fas fa-file-excel text-3xl mr-3"></i>
+                            <div>
+                                <div class="font-bold text-lg">${e.target.files[0].name}</div>
+                                <div class="text-sm opacity-90">Pronto para importar</div>
+                            </div>
+                        `;
+                    }
+                });
+
+                loadButton.addEventListener('click', () => this.importarExcel());
+            }
+
+            // Detectar automaticamente as colunas do Excel
+            detectarColunas(keys) {
+                const mapeamento = {
+                    // Mapeamento inteligente de nomes de colunas
+                    nome: ['nome', 'name', 'aluno', 'student'],
+                    cpf: ['cpf', 'documento', 'doc'],
+                    matricula: ['matricula', 'matrícula', 'codigo', 'código', 'id', 'registration'],
+                    dataAdmissao: ['data de admissão', 'data admissão', 'dataadmissao', 'admissao', 'admission', 'data ingresso'],
+                    turma: ['turma', 'classe', 'class', 'sala'],
+                    nomePai: ['nome pai', 'nomepai', 'pai', 'father'],
+                    nomeMae: ['nome mãe', 'nome mae', 'nomemae', 'mãe', 'mae', 'mother'],
+                    endereco: ['endereço', 'endereco', 'address', 'rua'],
+                    telefone: ['telefone', 'fone', 'tel', 'phone', 'celular'],
+                    email: ['email', 'e-mail', 'mail'],
+                    dataNascimento: ['data nascimento', 'nascimento', 'birth', 'aniversário']
+                };
+
+                const colunasDetectadas = {};
+                const colunasPersonalizadas = [];
+
+                keys.forEach(key => {
+                    const keyLower = key.toLowerCase().trim();
+                    let encontrada = false;
+
+                    // Tentar mapear para colunas conhecidas
+                    for (const [campo, variacoes] of Object.entries(mapeamento)) {
+                        if (variacoes.some(v => keyLower.includes(v))) {
+                            colunasDetectadas[campo] = key;
+                            encontrada = true;
+                            break;
+                        }
+                    }
+
+                    // Se não encontrou, adicionar como campo personalizado
+                    if (!encontrada) {
+                        colunasPersonalizadas.push({
+                            nomeOriginal: key,
+                            nomeCampo: keyLower.replace(/\s+/g, '_')
+                        });
+                    }
+                });
+
+                return { colunasDetectadas, colunasPersonalizadas };
+            }
+
+            async importarExcel() {
+                const fileInput = document.getElementById('excel-file');
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    ToastManager.show('Selecione um arquivo Excel primeiro', 'warning');
+                    return;
+                }
+
+                this.showProgress(true);
+                this.updateProgress(0, 'Lendo arquivo...');
+
+                const reader = new FileReader();
+                
+                reader.onload = async (e) => {
+                    try {
+                        this.updateProgress(30, 'Processando dados...');
+                        
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                        if (jsonData.length === 0) {
+                            throw new Error('A planilha está vazia');
+                        }
+
+                        this.updateProgress(40, 'Detectando colunas...');
+
+                        const keys = Object.keys(jsonData[0]);
+                        const { colunasDetectadas, colunasPersonalizadas } = this.detectarColunas(keys);
+
+                        // Verificar se pelo menos Nome foi encontrado
+                        if (!colunasDetectadas.nome) {
+                            throw new Error('Coluna "Nome" não encontrada. Certifique-se que existe uma coluna com o nome do aluno.');
+                        }
+
+                        // Salvar campos personalizados no modelo
+                        this.dataModel.camposPersonalizados = colunasPersonalizadas;
+
+                        // Mostrar modal de seleção de colunas
+                        await this.mostrarSeletorColunas(colunasDetectadas, colunasPersonalizadas);
+
+                        this.updateProgress(50, 'Importando alunos...');
+
+                        const alunos = [];
+                        jsonData.forEach((row, index) => {
+                            const aluno = {
+                                id: Utils.gerarId(),
+                                attendance: {}
+                            };
+
+                            // Mapear colunas detectadas
+                            for (const [campo, nomeColuna] of Object.entries(colunasDetectadas)) {
+                                if (row[nomeColuna]) {
+                                    if (campo === 'cpf') {
+                                        aluno[campo] = String(row[nomeColuna]).replace(/\D/g, '');
+                                    } else if (campo === 'dataAdmissao' || campo === 'dataNascimento') {
+                                        // Tentar converter data do Excel
+                                        const valor = row[nomeColuna];
+                                        if (typeof valor === 'number') {
+                                            // Data do Excel é número (dias desde 1900)
+                                            const date = new Date((valor - 25569) * 86400 * 1000);
+                                            aluno[campo] = date.toISOString().split('T')[0];
+                                        } else {
+                                            aluno[campo] = String(valor);
+                                        }
+                                    } else {
+                                        aluno[campo] = String(row[nomeColuna]).trim();
+                                    }
+                                }
+                            }
+
+                            // Adicionar campos personalizados
+                            colunasPersonalizadas.forEach(cp => {
+                                if (row[cp.nomeOriginal]) {
+                                    if (!aluno.customFields) aluno.customFields = {};
+                                    aluno.customFields[cp.nomeCampo] = String(row[cp.nomeOriginal]).trim();
+                                }
+                            });
+
+                            // Inicializar presença para eventos existentes
+                            this.dataModel.eventos.forEach(evento => {
+                                aluno.attendance[evento.id] = { status: 'falta', obs: '' };
+                            });
+
+                            // Só adicionar se tiver nome
+                            if (aluno.nome) {
+                                alunos.push(aluno);
+                            }
+                        });
+
+                        this.updateProgress(90, 'Finalizando...');
+
+                        if (alunos.length === 0) {
+                            throw new Error('Nenhum aluno válido encontrado');
+                        }
+
+                        this.dataModel.setAlunos(alunos);
+
+                        this.updateProgress(100, 'Concluído!');
+                        
+                        setTimeout(() => {
+                            this.showProgress(false);
+                            ToastManager.show(
+                                `${alunos.length} aluno(s) importado(s) com sucesso!`,
+                                'success'
+                            );
+                            
+                            // Mostrar resumo das colunas
+                            this.mostrarResumoImportacao(colunasDetectadas, colunasPersonalizadas);
+                        }, 500);
+
+                    } catch (error) {
+                        this.showProgress(false);
+                        ToastManager.show(error.message, 'error');
+                        console.error('Erro na importação:', error);
+                    }
+                };
+
+                reader.onerror = () => {
+                    this.showProgress(false);
+                    ToastManager.show('Erro ao ler o arquivo', 'error');
+                };
+
+                reader.readAsArrayBuffer(file);
+            }
+
+            mostrarSeletorColunas(colunasDetectadas, colunasPersonalizadas) {
+                return new Promise((resolve) => {
+                    const todasColunas = [
+                        { campo: 'nome', label: 'Nome', obrigatorio: true, detectado: !!colunasDetectadas.nome },
+                        { campo: 'cpf', label: 'CPF', obrigatorio: false, detectado: !!colunasDetectadas.cpf },
+                        { campo: 'matricula', label: 'Matrícula', obrigatorio: false, detectado: !!colunasDetectadas.matricula },
+                        { campo: 'dataAdmissao', label: 'Data de Admissão', obrigatorio: false, detectado: !!colunasDetectadas.dataAdmissao },
+                        { campo: 'turma', label: 'Turma', obrigatorio: false, detectado: !!colunasDetectadas.turma },
+                        { campo: 'nomePai', label: 'Nome do Pai', obrigatorio: false, detectado: !!colunasDetectadas.nomePai },
+                        { campo: 'nomeMae', label: 'Nome da Mãe', obrigatorio: false, detectado: !!colunasDetectadas.nomeMae },
+                        { campo: 'endereco', label: 'Endereço', obrigatorio: false, detectado: !!colunasDetectadas.endereco },
+                        { campo: 'telefone', label: 'Telefone', obrigatorio: false, detectado: !!colunasDetectadas.telefone },
+                        { campo: 'email', label: 'E-mail', obrigatorio: false, detectado: !!colunasDetectadas.email },
+                        { campo: 'dataNascimento', label: 'Data de Nascimento', obrigatorio: false, detectado: !!colunasDetectadas.dataNascimento }
+                    ];
+
+                    const html = `
+                        <div class="space-y-4">
+                            <div class="p-4 bg-blue-50 rounded-xl border-l-4 border-blue-500">
+                                <p class="text-sm font-semibold text-blue-900">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    Selecione quais colunas você deseja exibir no Quadro de Frequência
+                                </p>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto p-2">
+                                ${todasColunas.map(col => `
+                                    <label class="flex items-center gap-3 p-3 rounded-lg border-2 ${col.detectado ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-gray-50'} hover:border-purple-300 cursor-pointer transition-all">
+                                        <input type="checkbox" 
+                                               class="coluna-checkbox w-5 h-5 rounded text-purple-600 focus:ring-2 focus:ring-purple-500"
+                                               data-campo="${col.campo}"
+                                               ${col.detectado ? 'checked' : ''}
+                                               ${col.obrigatorio ? 'disabled' : ''}>
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-gray-800">${col.label}</div>
+                                            <div class="text-xs ${col.detectado ? 'text-green-600' : 'text-gray-500'}">
+                                                ${col.detectado ? '✓ Detectado' : '✗ Não encontrado'}
+                                                ${col.obrigatorio ? '(Obrigatório)' : ''}
+                                            </div>
+                                        </div>
+                                    </label>
+                                `).join('')}
+                                
+                                ${colunasPersonalizadas.length > 0 ? `
+                                    <div class="col-span-full mt-4 pt-4 border-t-2">
+                                        <h4 class="font-bold text-gray-700 mb-3">
+                                            <i class="fas fa-magic mr-2"></i>Campos Personalizados Detectados
+                                        </h4>
+                                    </div>
+                                    ${colunasPersonalizadas.map(cp => `
+                                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-purple-300 bg-purple-50 hover:border-purple-400 cursor-pointer transition-all">
+                                            <input type="checkbox" 
+                                                   class="coluna-checkbox w-5 h-5 rounded text-purple-600 focus:ring-2 focus:ring-purple-500"
+                                                   data-campo="${cp.nomeCampo}"
+                                                   data-custom="true"
+                                                   checked>
+                                            <div class="flex-1">
+                                                <div class="font-semibold text-gray-800">${cp.nomeOriginal}</div>
+                                                <div class="text-xs text-purple-600">✨ Campo personalizado</div>
+                                            </div>
+                                        </label>
+                                    `).join('')}
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+
+                    ModalManager.show(
+                        '<i class="fas fa-columns mr-2"></i>Configurar Colunas Visíveis',
+                        html,
+                        [
+                            {
+                                label: '<i class="fas fa-check mr-2"></i>Confirmar e Importar',
+                                class: 'bg-gradient-to-r from-green-500 to-green-600 text-white',
+                                callback: () => {
+                                    const checkboxes = document.querySelectorAll('.coluna-checkbox:checked');
+                                    const colunas = Array.from(checkboxes).map(cb => cb.dataset.campo);
+                                    this.dataModel.setColunasVisiveis(colunas);
+                                    resolve();
+                                }
+                            }
+                        ]
+                    );
+                });
+            }
+
+            mostrarResumoImportacao(colunasDetectadas, colunasPersonalizadas) {
+                const html = `
+                    <div class="space-y-4">
+                        <div class="p-4 bg-green-50 rounded-xl">
+                            <h3 class="font-bold text-green-900 mb-2">
+                                <i class="fas fa-check-circle mr-2"></i>Importação Concluída
+                            </h3>
+                            <p class="text-sm text-green-800">Os dados foram importados com sucesso!</p>
+                        </div>
+                        
+                        <div class="p-4 bg-blue-50 rounded-xl">
+                            <h4 class="font-bold text-blue-900 mb-2">Colunas Detectadas:</h4>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                ${Object.entries(colunasDetectadas).map(([campo, nome]) => `
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-check text-green-600"></i>
+                                        <span>${campo}: <strong>${nome}</strong></span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        ${colunasPersonalizadas.length > 0 ? `
+                            <div class="p-4 bg-purple-50 rounded-xl">
+                                <h4 class="font-bold text-purple-900 mb-2">
+                                    <i class="fas fa-magic mr-2"></i>Campos Personalizados:
+                                </h4>
+                                <div class="flex flex-wrap gap-2">
+                                    ${colunasPersonalizadas.map(cp => `
+                                        <span class="badge bg-purple-200 text-purple-800">${cp.nomeOriginal}</span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                setTimeout(() => {
+                    ModalManager.show(
+                        '<i class="fas fa-info-circle mr-2"></i>Resumo da Importação',
+                        html,
+                        [
+                            { 
+                                label: 'OK', 
+                                class: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white', 
+                                callback: () => {} 
+                            }
+                        ]
+                    );
+                }, 800);
+            }
+
+            showProgress(show) {
+                document.getElementById('import-progress').style.display = show ? 'block' : 'none';
+            }
+
+            updateProgress(percent, text) {
+                document.getElementById('progress-fill').style.width = `${percent}%`;
+                document.getElementById('progress-text').textContent = text;
+            }
+        }
+
+        // --- CONTROLADOR DE EVENTOS ---
+        class EventoController {
+            constructor(dataModel) {
+                this.dataModel = dataModel;
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                const form = document.getElementById('form-evento');
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.adicionarEvento();
+                });
+            }
+
+            adicionarEvento() {
+                const nome = document.getElementById('nome-evento').value.trim();
+                const data = document.getElementById('data-evento').value;
+                const horario = document.getElementById('horario-evento').value;
+                const horarioTermino = document.getElementById('horario-termino-evento').value;
+                const local = document.getElementById('local-evento').value.trim();
+
+                if (!nome || !data) {
+                    ToastManager.show('Preencha todos os campos obrigatórios', 'warning');
+                    return;
+                }
+
+                const evento = {
+                    id: Utils.gerarId(),
+                    nome,
+                    data,
+                    horario,
+                    horarioTermino,
+                    local
+                };
+
+                this.dataModel.addEvento(evento);
+
+                // Limpar formulário
+                document.getElementById('nome-evento').value = '';
+                document.getElementById('data-evento').valueAsDate = new Date();
+                document.getElementById('horario-evento').value = '';
+                document.getElementById('horario-termino-evento').value = '';
+                document.getElementById('local-evento').value = '';
+                document.getElementById('nome-evento').focus();
+
+                ToastManager.show(`Evento "${nome}" adicionado com sucesso!`, 'success');
+            }
+        }
+
+        // --- CONTROLADOR DE VISUALIZAÇÃO ---
+        class ViewController {
+            constructor(dataModel) {
+                this.dataModel = dataModel;
+                this.currentPage = 1;
+                this.setupEventListeners();
+                this.setupTableDelegation(); // Delegação de eventos da tabela
+                this.dataModel.subscribe(() => this.render());
+            }
+
+            setupEventListeners() {
+                // Adicionar aluno
+                document.getElementById('btn-add-aluno').addEventListener('click', () => {
+                    this.mostrarFormularioAluno();
+                });
+
+                // Configurar colunas
+                document.getElementById('btn-colunas').addEventListener('click', () => {
+                    this.mostrarConfigColunas();
+                });
+
+                // Filtros
+                document.getElementById('btn-filtros').addEventListener('click', () => {
+                    const container = document.getElementById('filtros-container');
+                    container.style.display = container.style.display === 'none' ? 'block' : 'none';
+                });
+
+                // Resetar Tudo
+                document.getElementById('btn-resetar').addEventListener('click', () => {
+                    this.resetarTudo();
+                });
+
+                // Busca com debounce
+                const filtroAluno = document.getElementById('filtro-aluno');
+                filtroAluno.addEventListener('input', Utils.debounce(() => {
+                    this.render();
+                }, 300));
+
+                // Dark Mode
+                document.getElementById('btn-dark-mode').addEventListener('click', () => {
+                    document.body.classList.toggle('dark-mode');
+                });
+
+                // Ajuda
+                document.getElementById('btn-help').addEventListener('click', () => {
+                    this.mostrarAjuda();
+                });
+
+                // Gráficos
+                document.getElementById('btn-grafico').addEventListener('click', () => {
+                    this.mostrarGraficos();
+                });
+
+                // Lista de Assinatura
+                document.getElementById('gerar-lista-assinatura').addEventListener('click', () => {
+                    this.mostrarConfigListaAssinatura();
+                });
+            }
+
+            mostrarFormularioAluno(alunoId = null) {
+                const aluno = alunoId ? this.dataModel.alunos.find(a => a.id === alunoId) : null;
+                const isEdit = !!aluno;
+
+                // Obter todas as colunas disponíveis
+                const campos = [
+                    { campo: 'nome', label: 'Nome', type: 'text', required: true },
+                    { campo: 'cpf', label: 'CPF', type: 'text', required: false },
+                    { campo: 'matricula', label: 'Matrícula', type: 'text', required: false },
+                    { campo: 'dataAdmissao', label: 'Data de Admissão', type: 'date', required: false },
+                    { campo: 'turma', label: 'Turma', type: 'text', required: false },
+                    { campo: 'nomePai', label: 'Nome do Pai', type: 'text', required: false },
+                    { campo: 'nomeMae', label: 'Nome da Mãe', type: 'text', required: false },
+                    { campo: 'endereco', label: 'Endereço', type: 'text', required: false },
+                    { campo: 'telefone', label: 'Telefone', type: 'tel', required: false },
+                    { campo: 'email', label: 'E-mail', type: 'email', required: false },
+                    { campo: 'dataNascimento', label: 'Data de Nascimento', type: 'date', required: false }
+                ];
+
+                const html = `
+                    <form id="form-aluno" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${campos.map(c => `
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        ${c.label}${c.required ? ' *' : ''}
+                                    </label>
+                                    <input type="${c.type}" 
+                                           id="aluno-${c.campo}" 
+                                           value="${aluno ? (aluno[c.campo] || '') : ''}"
+                                           ${c.required ? 'required' : ''}
+                                           class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all"
+                                           placeholder="${c.label}">
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        ${this.dataModel.camposPersonalizados.length > 0 ? `
+                            <div class="pt-4 border-t-2">
+                                <h4 class="font-bold text-gray-700 mb-3">
+                                    <i class="fas fa-magic mr-2"></i>Campos Personalizados
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    ${this.dataModel.camposPersonalizados.map(cp => `
+                                        <div>
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                ${cp.nomeOriginal}
+                                            </label>
+                                            <input type="text" 
+                                                   id="aluno-custom-${cp.nomeCampo}"
+                                                   value="${aluno && aluno.customFields ? (aluno.customFields[cp.nomeCampo] || '') : ''}"
+                                                   class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all"
+                                                   placeholder="${cp.nomeOriginal}">
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </form>
+                `;
+
+                ModalManager.show(
+                    `<i class="fas fa-user-${isEdit ? 'edit' : 'plus'} mr-2"></i>${isEdit ? 'Editar' : 'Adicionar'} Aluno`,
+                    html,
+                    [
+                        {
+                            label: '<i class="fas fa-times mr-2"></i>Cancelar',
+                            class: 'bg-gray-300 text-gray-700 hover:bg-gray-400',
+                            callback: () => {}
+                        },
+                        {
+                            label: `<i class="fas fa-save mr-2"></i>${isEdit ? 'Salvar' : 'Adicionar'}`,
+                            class: 'bg-gradient-to-r from-green-500 to-green-600 text-white',
+                            callback: () => {
+                                const form = document.getElementById('form-aluno');
+                                if (!form.checkValidity()) {
+                                    form.reportValidity();
+                                    return;
+                                }
+                                
+                                const alunoData = {
+                                    id: alunoId || Utils.gerarId(),
+                                    attendance: aluno ? aluno.attendance : {}
+                                };
+                                
+                                // Campos padrão
+                                campos.forEach(c => {
+                                    const valor = document.getElementById(`aluno-${c.campo}`).value.trim();
+                                    if (valor) alunoData[c.campo] = valor;
+                                });
+                                
+                                // Campos personalizados
+                                this.dataModel.camposPersonalizados.forEach(cp => {
+                                    const input = document.getElementById(`aluno-custom-${cp.nomeCampo}`);
+                                    if (input) {
+                                        const valor = input.value.trim();
+                                        if (valor) {
+                                            if (!alunoData.customFields) alunoData.customFields = {};
+                                            alunoData.customFields[cp.nomeCampo] = valor;
+                                        }
+                                    }
+                                });
+                                
+                                if (isEdit) {
+                                    this.dataModel.updateAluno(alunoId, alunoData);
+                                    ToastManager.show('Aluno atualizado com sucesso!', 'success');
+                                } else {
+                                    this.dataModel.addAluno(alunoData);
+                                    ToastManager.show('Aluno adicionado com sucesso!', 'success');
+                                }
+                            }
+                        }
+                    ]
+                );
+            }
+
+            resetarTudo() {
+                ModalManager.show(
+                    '<i class="fas fa-exclamation-triangle mr-2 text-orange-500"></i>Resetar Todo o Sistema',
+                    `
+                    <div class="space-y-4">
+                        <div class="p-4 bg-red-50 rounded-xl border-l-4 border-red-500">
+                            <p class="text-red-900 font-bold mb-2">⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL!</p>
+                            <p class="text-red-800 text-sm">Você está prestes a excluir:</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl">
+                            <div class="text-center p-3 bg-white rounded-lg border-2 border-red-200">
+                                <i class="fas fa-users text-red-500 text-3xl mb-2"></i>
+                                <div class="font-bold text-2xl text-gray-800">${this.dataModel.alunos.length}</div>
+                                <div class="text-sm text-gray-600">Alunos</div>
+                            </div>
+                            <div class="text-center p-3 bg-white rounded-lg border-2 border-red-200">
+                                <i class="fas fa-calendar text-red-500 text-3xl mb-2"></i>
+                                <div class="font-bold text-2xl text-gray-800">${this.dataModel.eventos.length}</div>
+                                <div class="text-sm text-gray-600">Eventos</div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4 bg-yellow-50 rounded-xl border-l-4 border-yellow-500">
+                            <p class="text-yellow-900 font-semibold text-sm">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Todos os dados de frequência serão perdidos permanentemente!
+                            </p>
+                        </div>
+                        
+                        <p class="text-center text-gray-700 font-medium">Tem certeza absoluta que deseja continuar?</p>
+                    </div>
+                    `,
+                    [
+                        {
+                            label: '<i class="fas fa-times mr-2"></i>Não, Cancelar',
+                            class: 'bg-gray-300 text-gray-700 hover:bg-gray-400',
+                            callback: () => {}
+                        },
+                        {
+                            label: '<i class="fas fa-trash-alt mr-2"></i>Sim, Resetar Tudo',
+                            class: 'bg-gradient-to-r from-red-600 to-red-700 text-white',
+                            callback: () => {
+                                this.dataModel.clearData();
+                                ToastManager.show('Sistema resetado com sucesso!', 'success');
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 1500);
+                            }
+                        }
+                    ]
+                );
+            }
+
+            mostrarConfigColunas() {
+                const todasColunas = [
+                    { campo: 'nome', label: 'Nome', obrigatorio: true },
+                    { campo: 'cpf', label: 'CPF', obrigatorio: false },
+                    { campo: 'matricula', label: 'Matrícula', obrigatorio: false },
+                    { campo: 'dataAdmissao', label: 'Data de Admissão', obrigatorio: false },
+                    { campo: 'turma', label: 'Turma', obrigatorio: false },
+                    { campo: 'nomePai', label: 'Nome do Pai', obrigatorio: false },
+                    { campo: 'nomeMae', label: 'Nome da Mãe', obrigatorio: false },
+                    { campo: 'endereco', label: 'Endereço', obrigatorio: false },
+                    { campo: 'telefone', label: 'Telefone', obrigatorio: false },
+                    { campo: 'email', label: 'E-mail', obrigatorio: false },
+                    { campo: 'dataNascimento', label: 'Data de Nascimento', obrigatorio: false }
+                ];
+
+                const html = `
+                    <div class="space-y-4">
+                        <div class="p-4 bg-purple-50 rounded-xl border-l-4 border-purple-500">
+                            <p class="text-sm font-semibold text-purple-900">
+                                <i class="fas fa-columns mr-2"></i>
+                                Selecione quais colunas deseja exibir na tabela de frequência
+                            </p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            ${todasColunas.map(col => `
+                                <label class="flex items-center gap-3 p-3 rounded-lg border-2 ${this.dataModel.colunasVisiveis.includes(col.campo) ? 'border-purple-300 bg-purple-50' : 'border-gray-200 bg-gray-50'} hover:border-purple-300 cursor-pointer transition-all">
+                                    <input type="checkbox" 
+                                           class="coluna-vis-checkbox w-5 h-5 rounded text-purple-600 focus:ring-2 focus:ring-purple-500"
+                                           data-campo="${col.campo}"
+                                           ${this.dataModel.colunasVisiveis.includes(col.campo) ? 'checked' : ''}
+                                           ${col.obrigatorio ? 'disabled' : ''}>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-gray-800">${col.label}</div>
+                                        ${col.obrigatorio ? '<div class="text-xs text-gray-500">(Obrigatório)</div>' : ''}
+                                    </div>
+                                </label>
+                            `).join('')}
+                            
+                            ${this.dataModel.camposPersonalizados.map(cp => `
+                                <label class="flex items-center gap-3 p-3 rounded-lg border-2 ${this.dataModel.colunasVisiveis.includes(cp.nomeCampo) ? 'border-purple-400 bg-purple-100' : 'border-purple-200 bg-purple-50'} hover:border-purple-400 cursor-pointer transition-all">
+                                    <input type="checkbox" 
+                                           class="coluna-vis-checkbox w-5 h-5 rounded text-purple-600 focus:ring-2 focus:ring-purple-500"
+                                           data-campo="${cp.nomeCampo}"
+                                           ${this.dataModel.colunasVisiveis.includes(cp.nomeCampo) ? 'checked' : ''}>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-gray-800">${cp.nomeOriginal}</div>
+                                        <div class="text-xs text-purple-600">✨ Campo personalizado</div>
+                                    </div>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+
+                ModalManager.show(
+                    '<i class="fas fa-cog mr-2"></i>Configurar Colunas Visíveis',
+                    html,
+                    [
+                        {
+                            label: '<i class="fas fa-check mr-2"></i>Aplicar',
+                            class: 'bg-gradient-to-r from-purple-500 to-purple-600 text-white',
+                            callback: () => {
+                                const checkboxes = document.querySelectorAll('.coluna-vis-checkbox:checked');
+                                const colunas = Array.from(checkboxes).map(cb => cb.dataset.campo);
+                                this.dataModel.setColunasVisiveis(colunas);
+                                ToastManager.show('Configuração salva com sucesso!', 'success');
+                            }
+                        }
+                    ]
+                );
+            }
+
+            render() {
+                this.renderStats();
+                this.renderTable();
+                this.renderEventosRecentes();
+            }
+
+            renderStats() {
+                const stats = this.dataModel.getStats();
+                const statsSection = document.getElementById('stats-section');
+
+                if (stats.totalAlunos > 0) {
+                    statsSection.style.display = 'block';
+                    document.getElementById('stat-total-alunos').textContent = stats.totalAlunos;
+                    document.getElementById('stat-total-eventos').textContent = stats.totalEventos;
+                    document.getElementById('stat-taxa-presenca').textContent = `${stats.taxaPresenca}%`;
+                    document.getElementById('stat-total-registros').textContent = stats.totalRegistros;
+                } else {
+                    statsSection.style.display = 'none';
+                }
+            }
+
+            renderTable() {
+                const thead = document.getElementById('tabela-cabecalho');
+                const tbody = document.getElementById('corpo-tabela');
+
+                // Definir labels das colunas
+                const colunasLabels = {
+                    nome: { label: 'Nome', icon: 'fa-user' },
+                    cpf: { label: 'CPF', icon: 'fa-id-card' },
+                    matricula: { label: 'Matrícula', icon: 'fa-hashtag' },
+                    dataAdmissao: { label: 'Data Admissão', icon: 'fa-calendar-check' },
+                    turma: { label: 'Turma', icon: 'fa-users' },
+                    nomePai: { label: 'Nome do Pai', icon: 'fa-male' },
+                    nomeMae: { label: 'Nome da Mãe', icon: 'fa-female' },
+                    endereco: { label: 'Endereço', icon: 'fa-map-marker-alt' },
+                    telefone: { label: 'Telefone', icon: 'fa-phone' },
+                    email: { label: 'E-mail', icon: 'fa-envelope' },
+                    dataNascimento: { label: 'Nascimento', icon: 'fa-birthday-cake' }
+                };
+
+                // Renderizar cabeçalho
+                let headerHtml = '<tr>';
+                
+                // Colunas visíveis
+                this.dataModel.colunasVisiveis.forEach((coluna, index) => {
+                    const config = colunasLabels[coluna];
+                    const isFirst = index === 0;
+                    const customField = this.dataModel.camposPersonalizados.find(cp => cp.nomeCampo === coluna);
+                    
+                    if (customField) {
+                        headerHtml += `
+                            <th class="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[150px] ${isFirst ? 'sticky left-0 bg-gradient-to-r from-gray-50 to-gray-100 z-10 border-r-2 border-gray-200' : ''}">
+                                <i class="fas fa-magic mr-2 text-purple-600"></i>${customField.nomeOriginal}
+                            </th>
+                        `;
+                    } else if (config) {
+                        headerHtml += `
+                            <th class="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[${coluna === 'nome' ? '200' : '150'}px] ${isFirst ? 'sticky left-0 bg-gradient-to-r from-gray-50 to-gray-100 z-10 border-r-2 border-gray-200' : ''}">
+                                <i class="fas ${config.icon} mr-2"></i>${config.label}
+                            </th>
+                        `;
+                    }
+                });
+
+                // Colunas de estatísticas
+                headerHtml += `
+                    <th class="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[120px] bg-green-50">
+                        <i class="fas fa-check-circle mr-2 text-green-600"></i>Presenças
+                    </th>
+                    <th class="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[120px] bg-red-50">
+                        <i class="fas fa-times-circle mr-2 text-red-600"></i>Faltas
+                    </th>
+                    <th class="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[120px] bg-blue-50">
+                        <i class="fas fa-percentage mr-2 text-blue-600"></i>Taxa %
+                    </th>
+                `;
+
+                // Adicionar colunas de eventos
+                this.dataModel.eventos.forEach(evento => {
+                    headerHtml += `
+                        <th class="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[280px] border-l-2 border-gray-200 bg-purple-50">
+                            <div class="flex flex-col gap-2">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-calendar text-purple-600"></i>
+                                            <span>${evento.nome}</span>
+                                        </div>
+                                        <div class="font-normal text-gray-500 text-xs mt-1">
+                                            ${Utils.formatarData(evento.data)}
+                                            ${evento.horario ? `- ${evento.horario}` : ''}
+                                            ${evento.horarioTermino ? ` às ${evento.horarioTermino}` : ''}
+                                        </div>
+                                        ${evento.local ? `<div class="font-normal text-gray-500 text-xs"><i class="fas fa-map-marker-alt mr-1"></i>${evento.local}</div>` : ''}
+                                    </div>
+                                    <button onclick="controller.removerEvento('${evento.id}')" 
+                                            class="btn bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 text-xs">
+                                        <i class="fas fa-trash"></i> Remover
+                                    </button>
+                                </div>
+                            </div>
+                        </th>
+                    `;
+                });
+
+                // Coluna de ações
+                headerHtml += `
+                    <th class="p-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[120px] bg-gray-50">
+                        <i class="fas fa-cog mr-2"></i>Ações
+                    </th>
+                `;
+
+                headerHtml += '</tr>';
+                thead.innerHTML = headerHtml;
+
+                // Renderizar corpo
+                if (this.dataModel.alunos.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="${this.dataModel.colunasVisiveis.length + this.dataModel.eventos.length + 4}" class="p-12 text-center">
+                                <div class="flex flex-col items-center justify-center gap-4">
+                                    <i class="fas fa-inbox text-gray-300 text-6xl"></i>
+                                    <p class="text-gray-400 font-semibold text-lg">Nenhum dado disponível</p>
+                                    <p class="text-gray-400 text-sm">Carregue uma lista de alunos e adicione eventos para começar</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                let bodyHtml = '';
+                this.dataModel.alunos.forEach(aluno => {
+                    let totalPresencas = 0;
+                    let totalFaltas = 0;
+
+                    Object.values(aluno.attendance).forEach(att => {
+                        if (att.status === 'presente') totalPresencas++;
+                        if (att.status === 'falta') totalFaltas++;
+                    });
+
+                    const total = totalPresencas + totalFaltas;
+                    const taxa = Utils.calcularPorcentagem(totalPresencas, total);
+
+                    bodyHtml += '<tr class="hover:bg-gray-50 transition-all">';
+
+                    // Células de dados do aluno
+                    this.dataModel.colunasVisiveis.forEach((coluna, index) => {
+                        const isFirst = index === 0;
+                        const customField = this.dataModel.camposPersonalizados.find(cp => cp.nomeCampo === coluna);
+                        let valor = '';
+
+                        if (customField) {
+                            valor = aluno.customFields?.[coluna] || '-';
+                        } else {
+                            if (coluna === 'cpf') {
+                                valor = Utils.formatarCPF(aluno[coluna] || '');
+                            } else if (coluna === 'dataAdmissao' || coluna === 'dataNascimento') {
+                                valor = aluno[coluna] ? Utils.formatarData(aluno[coluna]) : '-';
+                            } else if (coluna === 'nome') {
+                                valor = `
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                                            ${(aluno[coluna] || '?').charAt(0).toUpperCase()}
+                                        </div>
+                                        <span>${aluno[coluna] || '-'}</span>
+                                    </div>
+                                `;
+                            } else {
+                                valor = aluno[coluna] || '-';
+                            }
+                        }
+
+                        bodyHtml += `
+                            <td class="p-4 text-sm ${coluna === 'nome' ? 'font-semibold' : ''} text-gray-800 ${isFirst ? 'sticky left-0 bg-white hover:bg-gray-50 z-10 border-r-2 border-gray-100' : ''}">
+                                ${valor}
+                            </td>
+                        `;
+                    });
+
+                    // Estatísticas
+                    bodyHtml += `
+                        <td class="p-4 text-sm font-bold text-green-700 bg-green-50">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-check-circle"></i>
+                                <span>${totalPresencas}</span>
+                            </div>
+                        </td>
+                        <td class="p-4 text-sm font-bold text-red-700 bg-red-50">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-times-circle"></i>
+                                <span>${totalFaltas}</span>
+                            </div>
+                        </td>
+                        <td class="p-4 text-sm font-bold bg-blue-50">
+                            <div class="flex flex-col gap-1">
+                                <span class="text-blue-700">${taxa}%</span>
+                                <div class="progress-bar h-2">
+                                    <div class="progress-fill" style="width: ${taxa}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                    `;
+
+                    // Células de eventos
+                    this.dataModel.eventos.forEach(evento => {
+                        const att = aluno.attendance[evento.id] || { status: 'falta', obs: '' };
+                        
+                        bodyHtml += `
+                            <td class="p-4 text-sm border-l-2 border-gray-100">
+                                <div class="flex flex-col gap-2">
+                                    <select data-aluno-id="${aluno.id}" data-evento-id="${evento.id}" 
+                                            class="attendance-select w-full p-3 border-2 rounded-xl font-semibold transition-all ${att.status === 'presente' ? 'border-green-500 bg-green-50 text-green-700' : 'border-red-500 bg-red-50 text-red-700'}">
+                                        <option value="falta" ${att.status === 'falta' ? 'selected' : ''}>❌ Falta</option>
+                                        <option value="presente" ${att.status === 'presente' ? 'selected' : ''}>✅ Presente</option>
+                                    </select>
+                                    <button data-aluno-id="${aluno.id}" 
+                                            data-evento-id="${evento.id}"
+                                            class="attendance-obs-btn w-full p-2 border-2 rounded-lg text-sm text-left transition-all ${att.obs ? 'border-purple-500 bg-purple-50 text-purple-800 font-medium' : 'border-gray-200 bg-white text-gray-400 hover:border-purple-300'}">
+                                        <i class="fas fa-comment-dots mr-2"></i>
+                                        ${att.obs || 'Adicionar observação...'}
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                    });
+
+                    // Ações
+                    bodyHtml += `
+                        <td class="p-4 text-center">
+                            <div class="flex gap-2 justify-center">
+                                <button onclick="controller.editarAluno('${aluno.id}')" 
+                                        class="btn bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600 text-xs" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="controller.removerAluno('${aluno.id}')" 
+                                        class="btn bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 text-xs" title="Remover">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+
+                    bodyHtml += '</tr>';
+                });
+
+                tbody.innerHTML = bodyHtml;
+            }
+
+            setupTableDelegation() {
+                const tbody = document.getElementById('corpo-tabela');
+                
+                // Delegação para select de status
+                tbody.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('attendance-select')) {
+                        const alunoId = e.target.dataset.alunoId;
+                        const eventoId = e.target.dataset.eventoId;
+                        const status = e.target.value;
+
+                        this.dataModel.updateAttendance(alunoId, eventoId, { status });
+
+                        // Atualizar visual
+                        if (status === 'presente') {
+                            e.target.className = e.target.className.replace(/border-red-\d+|bg-red-\d+|text-red-\d+/g, '');
+                            e.target.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+                        } else {
+                            e.target.className = e.target.className.replace(/border-green-\d+|bg-green-\d+|text-green-\d+/g, '');
+                            e.target.classList.add('border-red-500', 'bg-red-50', 'text-red-700');
+                        }
+                    }
+                });
+
+                // Delegação para botão de observações
+                tbody.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.attendance-obs-btn');
+                    if (btn) {
+                        const alunoId = btn.dataset.alunoId;
+                        const eventoId = btn.dataset.eventoId;
+                        const aluno = this.dataModel.alunos.find(a => a.id === alunoId);
+                        const att = aluno.attendance[eventoId] || { obs: '' };
+                        
+                        this.mostrarModalObservacao(alunoId, eventoId, att.obs);
+                    }
+                });
+            }
+
+            mostrarModalObservacao(alunoId, eventoId, obsAtual) {
+                const html = `
+                    <div class="space-y-4">
+                        <div class="p-4 bg-blue-50 rounded-xl border-l-4 border-blue-500">
+                            <p class="text-sm font-semibold text-blue-900">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Selecione um tipo de observação ou escreva uma personalizada
+                            </p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-3">Tipo de Observação:</label>
+                            <select id="tipo-obs" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all font-medium">
+                                <option value="">-- Selecione uma opção --</option>
+                                <option value="atestado"> Atestado Médico</option>
+                                <option value="procurador">Liberado pelo Procurador</option>
+                                <option value="justificada">Falta Justificada</option>
+                                <option value="evento">Participando de Evento</option>
+                                <option value="outro">Outro (Personalizar)</option>
+                            </select>
+                        </div>
+
+                        <div id="campo-procurador" class="hidden">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Nome do Procurador:</label>
+                            <input type="text" 
+                                   id="input-procurador" 
+                                   class="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all"
+                                   placeholder="Digite o nome do procurador...">
+                        </div>
+
+                        <div id="campo-outro" class="hidden">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Observação Personalizada:</label>
+                            <textarea id="input-outro" 
+                                      rows="3"
+                                      class="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all resize-none"
+                                      placeholder="Digite sua observação..."></textarea>
+                        </div>
+
+                        <div id="preview-obs" class="hidden p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border-2 border-purple-200">
+                            <p class="text-xs font-bold text-gray-600 mb-2">PRÉVIA DA OBSERVAÇÃO:</p>
+                            <p id="preview-text" class="text-sm font-semibold text-purple-900"></p>
+                        </div>
+
+                        ${obsAtual ? `
+                            <div class="p-4 bg-yellow-50 rounded-xl border-l-4 border-yellow-500">
+                                <p class="text-xs font-bold text-yellow-800 mb-1">Observação Atual:</p>
+                                <p class="text-sm text-yellow-900">${obsAtual}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                ModalManager.show(
+                    '<i class="fas fa-comment-medical mr-2"></i>Adicionar Observação',
+                    html,
+                    [
+                        {
+                            label: '<i class="fas fa-times mr-2"></i>Cancelar',
+                            class: 'bg-gray-300 text-gray-700 hover:bg-gray-400',
+                            callback: () => {}
+                        },
+                        {
+                            label: '<i class="fas fa-eraser mr-2"></i>Limpar',
+                            class: 'bg-orange-500 text-white hover:bg-orange-600',
+                            callback: () => {
+                                this.dataModel.updateAttendance(alunoId, eventoId, { obs: '' });
+                                ToastManager.show('Observação removida', 'info');
+                            }
+                        },
+                        {
+                            label: '<i class="fas fa-save mr-2"></i>Salvar',
+                            class: 'bg-gradient-to-r from-green-500 to-green-600 text-white',
+                            callback: () => {
+                                const tipoObs = document.getElementById('tipo-obs').value;
+                                let observacao = '';
+
+                                if (tipoObs === 'atestado') {
+                                    observacao = 'Atestado Médico';
+                                } else if (tipoObs === 'procurador') {
+                                    const nomeProcurador = document.getElementById('input-procurador').value.trim();
+                                    if (!nomeProcurador) {
+                                        ToastManager.show('Digite o nome do procurador', 'warning');
+                                        return;
+                                    }
+                                    observacao = `Liberado pelo Procurador: ${nomeProcurador}`;
+                                } else if (tipoObs === 'justificada') {
+                                    observacao = 'Falta Justificada';
+                                } else if (tipoObs === 'evento') {
+                                    observacao = 'Participando de Evento';
+                                } else if (tipoObs === 'outro') {
+                                    observacao = document.getElementById('input-outro').value.trim();
+                                    if (!observacao) {
+                                        ToastManager.show('Digite a observação personalizada', 'warning');
+                                        return;
+                                    }
+                                } else {
+                                    ToastManager.show('Selecione um tipo de observação', 'warning');
+                                    return;
+                                }
+
+                                this.dataModel.updateAttendance(alunoId, eventoId, { obs: observacao });
+                                ToastManager.show('Observação salva com sucesso!', 'success');
+                            }
+                        }
+                    ]
+                );
+
+                // Event listeners do modal
+                setTimeout(() => {
+                    const tipoObsSelect = document.getElementById('tipo-obs');
+                    const campoProcurador = document.getElementById('campo-procurador');
+                    const campoOutro = document.getElementById('campo-outro');
+                    const previewObs = document.getElementById('preview-obs');
+                    const previewText = document.getElementById('preview-text');
+                    const inputProcurador = document.getElementById('input-procurador');
+                    const inputOutro = document.getElementById('input-outro');
+
+                    // Atualizar preview
+                    const atualizarPreview = () => {
+                        const tipo = tipoObsSelect.value;
+                        let preview = '';
+
+                        if (tipo === 'atestado') {
+                            preview = 'Atestado Médico';
+                        } else if (tipo === 'procurador') {
+                            const nome = inputProcurador.value.trim();
+                            preview = nome ? `Liberado pelo Procurador: ${nome}` : '⚖️ Liberado pelo Procurador: [Nome do Procurador]';
+                        } else if (tipo === 'justificada') {
+                            preview = 'Falta Justificada';
+                        } else if (tipo === 'evento') {
+                            preview = 'Participando de Evento';
+                        } else if (tipo === 'outro') {
+                            preview = inputOutro.value.trim() || '[Digite sua observação]';
+                        }
+
+                        if (preview) {
+                            previewText.textContent = preview;
+                            previewObs.classList.remove('hidden');
+                        } else {
+                            previewObs.classList.add('hidden');
+                        }
+                    };
+
+                    // Listener para mudança de tipo
+                    tipoObsSelect.addEventListener('change', () => {
+                        const tipo = tipoObsSelect.value;
+
+                        // Esconder todos os campos extras
+                        campoProcurador.classList.add('hidden');
+                        campoOutro.classList.add('hidden');
+
+                        // Mostrar campo específico
+                        if (tipo === 'procurador') {
+                            campoProcurador.classList.remove('hidden');
+                            setTimeout(() => inputProcurador.focus(), 100);
+                        } else if (tipo === 'outro') {
+                            campoOutro.classList.remove('hidden');
+                            setTimeout(() => inputOutro.focus(), 100);
+                        }
+
+                        atualizarPreview();
+                    });
+
+                    // Listeners para inputs
+                    inputProcurador.addEventListener('input', atualizarPreview);
+                    inputOutro.addEventListener('input', atualizarPreview);
+                }, 100);
+            }
+
+            setupTableEventListeners() {
+                // Este método agora está vazio pois usamos delegação de eventos
+                // Mantido para compatibilidade com o código existente
+            }
+
+            renderEventosRecentes() {
+                const container = document.getElementById('eventos-recentes');
+                const list = document.getElementById('eventos-recentes-list');
+
+                if (this.dataModel.eventos.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+
+                container.style.display = 'block';
+                list.innerHTML = this.dataModel.eventos.slice(-5).reverse().map(evento => `
+                    <div class="p-3 bg-white rounded-lg border-2 border-gray-100 hover:border-purple-300 transition-all">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-calendar text-purple-600"></i>
+                                <span class="font-semibold text-sm">${evento.nome}</span>
+                            </div>
+                            <div class="text-xs text-gray-500 text-right">
+                                <div>${Utils.formatarData(evento.data)}</div>
+                                ${evento.horario ? `<div>${evento.horario}${evento.horarioTermino ? ` às ${evento.horarioTermino}` : ''}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            mostrarAjuda() {
+                ModalManager.show(
+                    '<i class="fas fa-question-circle mr-2"></i>Como Usar o Sistema',
+                    `
+                    <div class="space-y-4 text-gray-700">
+                        <div class="p-4 bg-blue-50 rounded-xl border-l-4 border-blue-500">
+                            <h3 class="font-bold mb-2"><i class="fas fa-upload mr-2"></i>1. Importar Alunos</h3>
+                            <p class="text-sm">Carregue um arquivo Excel (.xlsx ou .xls) contendo as colunas "Nome" e "CPF".</p>
+                        </div>
+                        <div class="p-4 bg-green-50 rounded-xl border-l-4 border-green-500">
+                            <h3 class="font-bold mb-2"><i class="fas fa-calendar-plus mr-2"></i>2. Adicionar Eventos</h3>
+                            <p class="text-sm">Crie eventos preenchendo o nome e a data. Você pode adicionar horário e local opcionalmente.</p>
+                        </div>
+                        <div class="p-4 bg-purple-50 rounded-xl border-l-4 border-purple-500">
+                            <h3 class="font-bold mb-2"><i class="fas fa-check-square mr-2"></i>3. Registrar Presença</h3>
+                            <p class="text-sm">Na tabela, selecione "Presente" ou "Falta" para cada aluno em cada evento. Adicione observações se necessário.</p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-xl border-l-4 border-red-500">
+                            <h3 class="font-bold mb-2"><i class="fas fa-file-pdf mr-2"></i>4. Exportar Relatórios</h3>
+                            <p class="text-sm">Use os botões "Excel" ou "PDF" para exportar relatórios completos com todas as informações.</p>
+                        </div>
+                    </div>
+                    `,
+                    [
+                        { 
+                            label: 'Entendi', 
+                            class: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white', 
+                            callback: () => {} 
+                        }
+                    ]
+                );
+            }
+
+            mostrarGraficos() {
+                const stats = this.dataModel.getStats();
+                
+                ModalManager.show(
+                    '<i class="fas fa-chart-pie mr-2"></i>Estatísticas e Gráficos',
+                    `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl">
+                            <h3 class="font-bold text-lg mb-4 text-blue-900">Resumo Geral</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-700">Total de Alunos:</span>
+                                    <span class="font-bold text-blue-700">${stats.totalAlunos}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-700">Total de Eventos:</span>
+                                    <span class="font-bold text-purple-700">${stats.totalEventos}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-700">Total de Registros:</span>
+                                    <span class="font-bold text-orange-700">${stats.totalRegistros}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl">
+                            <h3 class="font-bold text-lg mb-4 text-green-900">Taxa de Presença</h3>
+                            <div class="text-center">
+                                <div class="text-6xl font-black text-green-600 mb-2">${stats.taxaPresenca}%</div>
+                                <div class="progress-bar h-4">
+                                    <div class="progress-fill bg-gradient-to-r from-green-500 to-green-600" style="width: ${stats.taxaPresenca}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    `,
+                    [
+                        { 
+                            label: 'Fechar', 
+                            class: 'bg-gradient-to-r from-gray-400 to-gray-500 text-white', 
+                            callback: () => {} 
+                        }
+                    ]
+                );
+            }
+
+            mostrarConfigListaAssinatura() {
+                if (this.dataModel.alunos.length === 0) {
+                    ToastManager.show('Não há alunos cadastrados para gerar a lista', 'warning');
+                    return;
+                }
+
+                // Opções de colunas disponíveis
+                const colunasDisponiveis = [
+                    { campo: 'nome', label: 'Nome', obrigatorio: true },
+                    { campo: 'cpf', label: 'CPF', obrigatorio: false },
+                    { campo: 'matricula', label: 'Matrícula', obrigatorio: false },
+                    { campo: 'turma', label: 'Turma', obrigatorio: false },
+                    { campo: 'dataAdmissao', label: 'Data de Admissão', obrigatorio: false },
+                    { campo: 'dataNascimento', label: 'Data de Nascimento', obrigatorio: false },
+                    { campo: 'telefone', label: 'Telefone', obrigatorio: false },
+                    { campo: 'email', label: 'E-mail', obrigatorio: false }
+                ];
+
+                const eventosOptions = this.dataModel.eventos.map(evento => 
+                    `<option value="${evento.id}">${evento.nome} - ${Utils.formatarData(evento.data)}</option>`
+                ).join('');
+
+                const html = `
+                    <div class="space-y-6">
+                        <!-- Configurações da Lista -->
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-blue-800 mb-3">
+                                <i class="fas fa-cog mr-2"></i>Configurações da Lista
+                            </h4>
+                            
+                            <!-- Título da Lista -->
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Título da Lista</label>
+                                <input type="text" id="titulo-lista" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       value="Lista de Presença" placeholder="Ex: Lista de Presença - Aula do Dia XX/XX/XXXX">
+                            </div>
+
+                            <!-- Subtítulo -->
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Subtítulo (Opcional)</label>
+                                <input type="text" id="subtitulo-lista" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Ex: Disciplina de Matemática - Professor João">
+                            </div>
+
+                            <!-- Data do Evento -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Data</label>
+                                    <input type="date" id="data-lista" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Horário (Opcional)</label>
+                                    <input type="time" id="horario-lista" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                            </div>
+
+                            <!-- Evento Relacionado -->
+                            ${this.dataModel.eventos.length > 0 ? `
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Vincular a Evento Existente (Opcional)</label>
+                                <select id="evento-vinculado" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Selecione um evento...</option>
+                                    ${eventosOptions}
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Se selecionado, a data e horário serão preenchidos automaticamente</p>
+                            </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Seleção de Colunas -->
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-green-800 mb-3">
+                                <i class="fas fa-columns mr-2"></i>Dados dos Alunos a Incluir
+                            </h4>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                ${colunasDisponiveis.map(coluna => `
+                                    <label class="flex items-center space-x-2 p-2 rounded hover:bg-white/50 cursor-pointer">
+                                        <input type="checkbox" 
+                                               class="coluna-checkbox rounded border-gray-300 text-green-600 focus:ring-green-500" 
+                                               value="${coluna.campo}" 
+                                               ${coluna.obrigatorio ? 'checked disabled' : 'checked'}>
+                                        <span class="text-sm font-medium ${coluna.obrigatorio ? 'text-gray-800' : 'text-gray-700'}">${coluna.label}${coluna.obrigatorio ? ' *' : ''}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                            <p class="text-xs text-gray-600 mt-2">* Campos obrigatórios</p>
+                        </div>
+
+                        <!-- Opções de Layout -->
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-purple-800 mb-3">
+                                <i class="fas fa-layout mr-2"></i>Opções de Layout
+                            </h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Orientação</label>
+                                    <select id="orientacao-lista" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                        <option value="portrait">Retrato</option>
+                                        <option value="landscape" selected>Paisagem</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tamanho da Linha de Assinatura</label>
+                                    <select id="tamanho-assinatura" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                        <option value="pequena">Pequena</option>
+                                        <option value="media" selected>Média</option>
+                                        <option value="grande">Grande</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="incluir-observacoes" 
+                                           class="rounded border-gray-300 text-purple-600 focus:ring-purple-500" checked>
+                                    <span class="text-sm font-medium text-gray-700">Incluir coluna para observações</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-gray-800 mb-2">
+                                <i class="fas fa-eye mr-2"></i>Preview
+                            </h4>
+                            <p class="text-sm text-gray-600">A lista será gerada com aproximadamente <span id="preview-alunos">${this.dataModel.alunos.length}</span> alunos</p>
+                        </div>
+                    </div>
+                `;
+
+                ModalManager.show(
+                    '<i class="fas fa-clipboard-list mr-2 text-teal-600"></i>Gerar Lista de Assinatura',
+                    html,
+                    [
+                        {
+                            label: 'Cancelar',
+                            class: 'bg-gray-500 hover:bg-gray-600 text-white',
+                            callback: () => {}
+                        },
+                        {
+                            label: '<i class="fas fa-file-pdf mr-2"></i>Gerar PDF',
+                            class: 'bg-teal-600 hover:bg-teal-700 text-white',
+                            callback: () => this.gerarListaAssinaturaPDF()
+                        }
+                    ]
+                );
+
+                // Configurar event listeners do modal
+                setTimeout(() => {
+                    // Auto-preencher data atual
+                    document.getElementById('data-lista').valueAsDate = new Date();
+
+                    // Listener para evento vinculado
+                    const eventoSelect = document.getElementById('evento-vinculado');
+                    if (eventoSelect) {
+                        eventoSelect.addEventListener('change', (e) => {
+                            const eventoId = e.target.value;
+                            if (eventoId) {
+                                const evento = this.dataModel.eventos.find(ev => ev.id === eventoId);
+                                if (evento) {
+                                    document.getElementById('data-lista').value = evento.data;
+                                    if (evento.horario) {
+                                        document.getElementById('horario-lista').value = evento.horario;
+                                    }
+                                    document.getElementById('titulo-lista').value = `Lista de Presença - ${evento.nome}`;
+                                }
+                            }
+                        });
+                    }
+                }, 100);
+            }
+
+            gerarListaAssinaturaPDF() {
+                try {
+                    // Coletar configurações
+                    const titulo = document.getElementById('titulo-lista').value.trim() || 'Lista de Presença';
+                    const subtitulo = document.getElementById('subtitulo-lista').value.trim();
+                    const data = document.getElementById('data-lista').value;
+                    const horario = document.getElementById('horario-lista').value;
+                    const orientacao = document.getElementById('orientacao-lista').value;
+                    const tamanhoAssinatura = document.getElementById('tamanho-assinatura').value;
+                    const incluirObs = document.getElementById('incluir-observacoes').checked;
+
+                    // Coletar colunas selecionadas
+                    const colunasSelecionadas = Array.from(document.querySelectorAll('.coluna-checkbox:checked'))
+                        .map(cb => cb.value);
+
+                    if (colunasSelecionadas.length === 0) {
+                        ToastManager.show('Selecione pelo menos uma coluna', 'warning');
+                        return;
+                    }
+
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ 
+                        orientation: orientacao,
+                        unit: 'mm', 
+                        format: 'a4' 
+                    });
+
+                    const pageWidth = doc.internal.pageSize.getWidth();
+                    const pageHeight = doc.internal.pageSize.getHeight();
+                    const margin = 10;
+                    const contentWidth = pageWidth - (margin * 2);
+
+                    let currentY = margin;
+
+                    // Cabeçalho
+                    doc.setFontSize(18);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(51, 51, 51);
+                    
+                    // Centralizar título
+                    const titleWidth = doc.getTextWidth(titulo);
+                    const titleX = (pageWidth - titleWidth) / 2;
+                    doc.text(titulo, titleX, currentY + 8);
+                    currentY += 15;
+
+                    // Subtítulo
+                    if (subtitulo) {
+                        doc.setFontSize(12);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(102, 102, 102);
+                        const subtitleWidth = doc.getTextWidth(subtitulo);
+                        const subtitleX = (pageWidth - subtitleWidth) / 2;
+                        doc.text(subtitulo, subtitleX, currentY + 5);
+                        currentY += 12;
+                    }
+
+                    // Data e Horário
+                    if (data || horario) {
+                        doc.setFontSize(10);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(102, 102, 102);
+                        let dataHorarioText = '';
+                        if (data) dataHorarioText += `Data: ${Utils.formatarData(data)}`;
+                        if (horario) dataHorarioText += (data ? ' | ' : '') + `Horário: ${horario}`;
+                        
+                        const dataWidth = doc.getTextWidth(dataHorarioText);
+                        const dataX = (pageWidth - dataWidth) / 2;
+                        doc.text(dataHorarioText, dataX, currentY + 5);
+                        currentY += 12;
+                    }
+
+                    // Linha separadora
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.5);
+                    doc.line(margin, currentY, pageWidth - margin, currentY);
+                    currentY += 8;
+
+                    // Labels das colunas
+                    const colunasLabels = {
+                        nome: 'Nome',
+                        cpf: 'CPF',
+                        matricula: 'Matrícula',
+                        turma: 'Turma',
+                        dataAdmissao: 'Data Admissão',
+                        dataNascimento: 'Data Nascimento',
+                        telefone: 'Telefone',
+                        email: 'E-mail'
+                    };
+
+                    // Calcular larguras das colunas de forma inteligente
+                    const assinaturaWidths = {
+                        pequena: 30,
+                        media: 40,
+                        grande: 50
+                    };
+                    const assinaturaWidth = assinaturaWidths[tamanhoAssinatura];
+                    const obsWidth = incluirObs ? 35 : 0; // Aumentar largura da coluna de observações
+                    const dadosWidth = contentWidth - assinaturaWidth - obsWidth;
+                    
+                    // Definir larguras específicas para cada tipo de coluna
+                    const largurasPredefinidas = {
+                        nome: 45,         // Nome precisa de mais espaço (reduzido para compensar obs)
+                        cpf: 32,          // CPF formatado precisa de espaço fixo
+                        matricula: 22,    // Matrícula geralmente é curta
+                        turma: 18,        // Turma é curta
+                        dataAdmissao: 25, // Data formatada precisa de espaço fixo
+                        dataNascimento: 25, // Data formatada precisa de espaço fixo
+                        telefone: 28,     // Telefone precisa de espaço
+                        email: 35         // Email pode ser longo
+                    };
+                    
+                    // Calcular largura total necessária para colunas com largura fixa
+                    let larguraFixaTotal = 0;
+                    let colunasFlexiveis = [];
+                    
+                    colunasSelecionadas.forEach(coluna => {
+                        if (largurasPredefinidas[coluna]) {
+                            larguraFixaTotal += largurasPredefinidas[coluna];
+                        } else {
+                            colunasFlexiveis.push(coluna);
+                        }
+                    });
+                    
+                    // Calcular largura restante para colunas flexíveis
+                    const larguraRestante = dadosWidth - larguraFixaTotal;
+                    const larguraFlexivel = colunasFlexiveis.length > 0 ? larguraRestante / colunasFlexiveis.length : 0;
+                    
+                    // Criar mapa de larguras por coluna
+                    const largurasPorColuna = {};
+                    colunasSelecionadas.forEach(coluna => {
+                        if (largurasPredefinidas[coluna]) {
+                            largurasPorColuna[coluna] = largurasPredefinidas[coluna];
+                        } else {
+                            largurasPorColuna[coluna] = larguraFlexivel;
+                        }
+                    });
+
+                    // Verificar se as larguras somam mais que o espaço disponível
+                    const larguraTotalCalculada = Object.values(largurasPorColuna).reduce((total, largura) => total + largura, 0);
+                    if (larguraTotalCalculada > dadosWidth) {
+                        // Reduzir proporcionalmente todas as larguras
+                        const fatorReducao = dadosWidth / larguraTotalCalculada;
+                        Object.keys(largurasPorColuna).forEach(coluna => {
+                            largurasPorColuna[coluna] = largurasPorColuna[coluna] * fatorReducao;
+                        });
+                    }
+
+                    // Cabeçalho da tabela
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(51, 51, 51);
+
+                    let currentX = margin;
+                    let headerY = currentY + 6;
+
+                    // Headers das colunas de dados
+                    colunasSelecionadas.forEach(coluna => {
+                        const label = colunasLabels[coluna] || coluna;
+                        const largura = largurasPorColuna[coluna];
+                        doc.text(label, currentX + 2, headerY);
+                        currentX += largura;
+                    });
+
+                    // Header da coluna de assinatura
+                    doc.text('Assinatura', currentX + 2, headerY);
+                    currentX += assinaturaWidth;
+
+                    // Header da coluna de observações
+                    if (incluirObs) {
+                        doc.text('Observações', currentX + 2, headerY);
+                    }
+
+                    currentY += 10;
+
+                    // Linha do cabeçalho
+                    doc.setDrawColor(100, 100, 100);
+                    doc.setLineWidth(0.3);
+                    doc.line(margin, currentY, pageWidth - margin, currentY);
+                    currentY += 2;
+
+                    // Dados dos alunos
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8);
+                    const rowHeight = tamanhoAssinatura === 'grande' ? 12 : (tamanhoAssinatura === 'media' ? 10 : 8);
+
+                    this.dataModel.alunos.forEach((aluno, index) => {
+                        // Verificar se precisa de nova página
+                        if (currentY + rowHeight > pageHeight - margin) {
+                            doc.addPage();
+                            currentY = margin + 10;
+                        }
+
+                        currentX = margin;
+                        const textY = currentY + (rowHeight / 2) + 2;
+
+                        // Dados do aluno
+                        colunasSelecionadas.forEach(coluna => {
+                            const larguraColuna = largurasPorColuna[coluna];
+                            let valor = aluno[coluna] || '';
+                            
+                            // Formatações especiais
+                            if (coluna === 'cpf' && valor) {
+                                valor = Utils.formatarCPF(valor);
+                            } else if (coluna === 'dataAdmissao' && valor) {
+                                valor = Utils.formatarData(valor);
+                            } else if (coluna === 'dataNascimento' && valor) {
+                                valor = Utils.formatarData(valor);
+                            }
+
+                            // Truncar texto apenas para campos que não são críticos
+                            // CPF, matricula e datas não devem ser truncados
+                            const camposCriticos = ['cpf', 'matricula', 'dataAdmissao', 'dataNascimento'];
+                            
+                            if (!camposCriticos.includes(coluna)) {
+                                const maxWidth = larguraColuna - 4;
+                                while (doc.getTextWidth(valor) > maxWidth && valor.length > 1) {
+                                    valor = valor.slice(0, -1);
+                                }
+                                if (valor !== (aluno[coluna] || '') && valor.length > 3) {
+                                    valor = valor.slice(0, -3) + '...';
+                                }
+                            } else {
+                                // Para campos críticos, ajustar o tamanho da fonte se necessário
+                                const maxWidth = larguraColuna - 4;
+                                let fontSize = 8;
+                                doc.setFontSize(fontSize);
+                                
+                                while (doc.getTextWidth(valor) > maxWidth && fontSize > 6) {
+                                    fontSize -= 0.5;
+                                    doc.setFontSize(fontSize);
+                                }
+                            }
+
+                            doc.text(valor, currentX + 2, textY);
+                            
+                            // Restaurar tamanho da fonte padrão
+                            doc.setFontSize(8);
+                            
+                            // Linha vertical
+                            doc.setDrawColor(200, 200, 200);
+                            doc.line(currentX + larguraColuna, currentY, currentX + larguraColuna, currentY + rowHeight);
+                            
+                            currentX += larguraColuna;
+                        });
+
+                        // Linha de assinatura
+                        const assinaturaY = currentY + rowHeight - 2;
+                        doc.setDrawColor(150, 150, 150);
+                        doc.setLineWidth(0.2);
+                        doc.line(currentX + 5, assinaturaY, currentX + assinaturaWidth - 5, assinaturaY);
+                        
+                        // Linha vertical da assinatura
+                        doc.setDrawColor(200, 200, 200);
+                        doc.setLineWidth(0.3);
+                        doc.line(currentX + assinaturaWidth, currentY, currentX + assinaturaWidth, currentY + rowHeight);
+                        
+                        currentX += assinaturaWidth;
+
+                        // Coluna de observações
+                        if (incluirObs) {
+                            // Linha vertical da coluna de observações (não precisa avançar currentX pois é a última coluna)
+                            doc.setDrawColor(200, 200, 200);
+                            doc.setLineWidth(0.3);
+                            doc.line(currentX + obsWidth, currentY, currentX + obsWidth, currentY + rowHeight);
+                        }
+
+                        // Linha horizontal
+                        doc.setDrawColor(200, 200, 200);
+                        doc.line(margin, currentY + rowHeight, pageWidth - margin, currentY + rowHeight);
+                        
+                        currentY += rowHeight;
+                    });
+
+                    // Rodapé
+                    const footerY = pageHeight - 15;
+                    doc.setFontSize(8);
+                    doc.setTextColor(102, 102, 102);
+                    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} - Sistema de Frequência v${CONFIG.VERSION}`, margin, footerY);
+                    doc.text(`Total de alunos: ${this.dataModel.alunos.length}`, pageWidth - margin - 40, footerY);
+
+                    // Salvar PDF
+                    const nomeArquivo = `Lista_Assinatura_${new Date().toISOString().split('T')[0]}.pdf`;
+                    doc.save(nomeArquivo);
+
+                    ToastManager.show(`Lista de assinatura gerada com sucesso! (${this.dataModel.alunos.length} alunos)`, 'success');
+                    ModalManager.close();
+
+                } catch (error) {
+                    console.error('Erro ao gerar lista:', error);
+                    ToastManager.show('Erro ao gerar lista de assinatura', 'error');
+                }
+            }
+        }
+
+        // --- CONTROLADOR DE EXPORTAÇÃO ---
+        class ExportController {
+            constructor(dataModel) {
+                this.dataModel = dataModel;
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                document.getElementById('export-pdf').addEventListener('click', () => this.exportarPDF());
+                document.getElementById('export-excel').addEventListener('click', () => this.exportarExcel());
+            }
+
+            exportarPDF() {
+                if (this.dataModel.alunos.length === 0) {
+                    ToastManager.show('Não há dados para exportar', 'warning');
+                    return;
+                }
+
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+                    // Cabeçalho
+                    doc.setFontSize(20);
+                    doc.setTextColor(102, 126, 234);
+                    doc.text('Relatório de Frequência', 14, 15);
+
+                    doc.setFontSize(10);
+                    doc.setTextColor(100);
+                    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 22);
+
+                    // Estatísticas
+                    const stats = this.dataModel.getStats();
+                    doc.setFontSize(10);
+                    doc.text(`Total de Alunos: ${stats.totalAlunos} | Eventos: ${stats.totalEventos} | Taxa de Presença: ${stats.taxaPresenca}%`, 14, 28);
+
+                    // Labels das colunas
+                    const colunasLabels = {
+                        nome: 'Nome',
+                        cpf: 'CPF',
+                        matricula: 'Matrícula',
+                        dataAdmissao: 'Data Admissão',
+                        turma: 'Turma',
+                        nomePai: 'Nome do Pai',
+                        nomeMae: 'Nome da Mãe',
+                        endereco: 'Endereço',
+                        telefone: 'Telefone',
+                        email: 'E-mail',
+                        dataNascimento: 'Nascimento'
+                    };
+
+                    // Tabela Principal - Usar colunas visíveis
+                    const head = [[]];
+                    
+                    // Adicionar colunas visíveis ao cabeçalho
+                    this.dataModel.colunasVisiveis.forEach(coluna => {
+                        const customField = this.dataModel.camposPersonalizados.find(cp => cp.nomeCampo === coluna);
+                        if (customField) {
+                            head[0].push(customField.nomeOriginal);
+                        } else {
+                            head[0].push(colunasLabels[coluna] || coluna);
+                        }
+                    });
+                    
+                    // Adicionar estatísticas
+                    head[0].push('P', 'F', '%');
+                    
+                    // Adicionar eventos
+                    this.dataModel.eventos.forEach(e => {
+                        let eventoHeader = `${e.nome}\n${Utils.formatarData(e.data)}`;
+                        if (e.horario) {
+                            eventoHeader += `\n${e.horario}`;
+                            if (e.horarioTermino) {
+                                eventoHeader += ` às ${e.horarioTermino}`;
+                            }
+                        }
+                        head[0].push(eventoHeader);
+                    });
+
+                    const body = [];
+                    const observacoes = [];
+
+                    this.dataModel.alunos.forEach(aluno => {
+                        let totalP = 0, totalF = 0;
+                        const row = [];
+
+                        // Adicionar dados das colunas visíveis
+                        this.dataModel.colunasVisiveis.forEach(coluna => {
+                            const customField = this.dataModel.camposPersonalizados.find(cp => cp.nomeCampo === coluna);
+                            if (customField) {
+                                row.push(aluno.customFields?.[coluna] || '');
+                            } else {
+                                let valor = aluno[coluna] || '';
+                                if (coluna === 'cpf') valor = Utils.formatarCPF(valor);
+                                row.push(valor);
+                            }
+                        });
+
+                        // Calcular estatísticas
+                        Object.values(aluno.attendance).forEach(att => {
+                            if (att.status === 'presente') totalP++;
+                            else totalF++;
+                        });
+
+                        const taxa = Utils.calcularPorcentagem(totalP, totalP + totalF);
+                        row.push(totalP, totalF, `${taxa}%`);
+
+                        // Adicionar presenças por evento
+                        this.dataModel.eventos.forEach(e => {
+                            const att = aluno.attendance[e.id];
+                            row.push(att?.status === 'presente' ? '✓' : '✗');
+                            if (att?.obs) {
+                                const primeiraColuna = this.dataModel.colunasVisiveis[0];
+                                const nomeAluno = aluno[primeiraColuna] || aluno.nome;
+                                observacoes.push([nomeAluno, e.nome, att.obs]);
+                            }
+                        });
+
+                        body.push(row);
+                    });
+
+                    doc.autoTable({
+                        head,
+                        body,
+                        startY: 32,
+                        theme: 'grid',
+                        headStyles: { fillColor: [102, 126, 234], fontStyle: 'bold', halign: 'center' },
+                        styles: { fontSize: 7, cellPadding: 1.5 },
+                        columnStyles: { 0: { cellWidth: 30 } }
+                    });
+
+                    // Tabela de Observações
+                    if (observacoes.length > 0) {
+                        doc.addPage();
+                        doc.setFontSize(16);
+                        doc.text('Observações Detalhadas', 14, 15);
+
+                        doc.autoTable({
+                            head: [['Aluno', 'Evento', 'Observação']],
+                            body: observacoes,
+                            startY: 22,
+                            theme: 'striped',
+                            headStyles: { fillColor: [245, 158, 11] }
+                        });
+                    }
+
+                    doc.save(`Frequencia_${new Date().toISOString().split('T')[0]}.pdf`);
+                    ToastManager.show('PDF exportado com sucesso!', 'success');
+
+                } catch (error) {
+                    ToastManager.show('Erro ao exportar PDF', 'error');
+                    console.error(error);
+                }
+            }
+
+            exportarExcel() {
+                if (this.dataModel.alunos.length === 0) {
+                    ToastManager.show('Não há dados para exportar', 'warning');
+                    return;
+                }
+
+                try {
+                    const data = [];
+                    
+                    // Labels das colunas
+                    const colunasLabels = {
+                        nome: 'Nome',
+                        cpf: 'CPF',
+                        matricula: 'Matrícula',
+                        dataAdmissao: 'Data Admissão',
+                        turma: 'Turma',
+                        nomePai: 'Nome do Pai',
+                        nomeMae: 'Nome da Mãe',
+                        endereco: 'Endereço',
+                        telefone: 'Telefone',
+                        email: 'E-mail',
+                        dataNascimento: 'Nascimento'
+                    };
+                    
+                    // Cabeçalho - Usar colunas visíveis
+                    const header = [];
+                    
+                    // Adicionar colunas visíveis ao cabeçalho
+                    this.dataModel.colunasVisiveis.forEach(coluna => {
+                        const customField = this.dataModel.camposPersonalizados.find(cp => cp.nomeCampo === coluna);
+                        if (customField) {
+                            header.push(customField.nomeOriginal);
+                        } else {
+                            header.push(colunasLabels[coluna] || coluna);
+                        }
+                    });
+                    
+                    // Adicionar estatísticas
+                    header.push('Total Presenças', 'Total Faltas', 'Taxa %');
+                    
+                        // Adicionar eventos (Status + Observação)
+                        this.dataModel.eventos.forEach(e => {
+                            let eventoHeader = `${e.nome} (${Utils.formatarData(e.data)})`;
+                            if (e.horario) {
+                                eventoHeader += ` ${e.horario}`;
+                                if (e.horarioTermino) {
+                                    eventoHeader += ` às ${e.horarioTermino}`;
+                                }
+                            }
+                            header.push(eventoHeader);
+                            header.push(`Observação - ${e.nome}`);
+                        });
+                        data.push(header);                    // Dados
+                    this.dataModel.alunos.forEach(aluno => {
+                        let totalP = 0, totalF = 0;
+                        const row = [];
+
+                        // Adicionar dados das colunas visíveis
+                        this.dataModel.colunasVisiveis.forEach(coluna => {
+                            const customField = this.dataModel.camposPersonalizados.find(cp => cp.nomeCampo === coluna);
+                            if (customField) {
+                                row.push(aluno.customFields?.[coluna] || '');
+                            } else {
+                                let valor = aluno[coluna] || '';
+                                if (coluna === 'cpf') valor = Utils.formatarCPF(valor);
+                                row.push(valor);
+                            }
+                        });
+
+                        // Calcular estatísticas
+                        Object.values(aluno.attendance).forEach(att => {
+                            if (att.status === 'presente') totalP++;
+                            else totalF++;
+                        });
+
+                        const taxa = Utils.calcularPorcentagem(totalP, totalP + totalF);
+                        row.push(totalP, totalF, `${taxa}%`);
+
+                        // Adicionar presenças por evento com observações
+                        this.dataModel.eventos.forEach(e => {
+                            const att = aluno.attendance[e.id];
+                            row.push(att?.status === 'presente' ? 'Presente' : 'Falta');
+                            row.push(att?.obs || ''); // Adiciona a observação
+                        });
+
+                        data.push(row);
+                    });
+
+                    const ws = XLSX.utils.aoa_to_sheet(data);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Frequência');
+
+                    XLSX.writeFile(wb, `Frequencia_${new Date().toISOString().split('T')[0]}.xlsx`);
+                    ToastManager.show('Excel exportado com sucesso!', 'success');
+
+                } catch (error) {
+                    ToastManager.show('Erro ao exportar Excel', 'error');
+                    console.error(error);
+                }
+            }
+        }
+
+        // --- CONTROLADOR PRINCIPAL ---
+        class MainController {
+            constructor() {
+                this.dataModel = new DataModel();
+                this.importController = new ImportController(this.dataModel);
+                this.eventoController = new EventoController(this.dataModel);
+                this.viewController = new ViewController(this.dataModel);
+                this.exportController = new ExportController(this.dataModel);
+
+                // Expor globalmente para callbacks inline
+                window.importController = this.importController;
+                window.viewController = this.viewController;
+                window.controller = this;
+                window.Utils = Utils;
+                window.ToastManager = ToastManager;
+
+                this.init();
+            }
+
+            init() {
+                // Definir data padrão
+                document.getElementById('data-evento').valueAsDate = new Date();
+
+                // Renderização inicial
+                this.viewController.render();
+
+                // Auto-save
+                setInterval(() => {
+                    this.dataModel.saveToStorage();
+                }, CONFIG.AUTO_SAVE_INTERVAL);
+
+                // Mensagem de boas-vindas
+                if (this.dataModel.alunos.length === 0) {
+                    setTimeout(() => {
+                        ToastManager.show('Bem-vindo ao Sistema de Frequência Enterprise!', 'info');
+                    }, 500);
+                }
+
+                console.log('✅ Sistema iniciado com sucesso!');
+            }
+
+            editarAluno(alunoId) {
+                this.viewController.mostrarFormularioAluno(alunoId);
+            }
+
+            removerAluno(alunoId) {
+                const aluno = this.dataModel.alunos.find(a => a.id === alunoId);
+                if (!aluno) return;
+
+                ModalManager.confirm(
+                    'Confirmar Remoção de Aluno',
+                    `Tem certeza que deseja remover o aluno <strong>${aluno.nome}</strong>? Esta ação não pode ser desfeita.`,
+                    () => {
+                        this.dataModel.removeAluno(alunoId);
+                        ToastManager.show(`Aluno ${aluno.nome} removido com sucesso`, 'success');
+                    }
+                );
+            }
+
+            removerEvento(eventoId) {
+                const evento = this.dataModel.eventos.find(e => e.id === eventoId);
+                if (!evento) return;
+
+                ModalManager.confirm(
+                    'Confirmar Remoção de Evento',
+                    `Tem certeza que deseja remover o evento <strong>${evento.nome}</strong>? Todos os dados de presença deste evento serão perdidos.`,
+                    () => {
+                        this.dataModel.removeEvento(eventoId);
+                        ToastManager.show(`Evento ${evento.nome} removido com sucesso`, 'success');
+                    }
+                );
+            }
+        }
+
+        // --- INICIALIZAÇÃO ---
+        let controller;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            controller = new MainController();
+        });
+
+    </script>
+
+</body>
+</html>

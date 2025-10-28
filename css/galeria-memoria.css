@@ -1,0 +1,432 @@
+/*
+==========================================================================
+📸 GALERIA DE FOTOS MEMÓRIA RIO DE JANEIRO - ESTILOS
+==========================================================================
+
+📝 DESCRIÇÃO:
+   Galeria de fotos estilo álbum vintage para memórias históricas
+   do Centro do Rio de Janeiro
+
+🎨 ESTILO:
+   - Layout tipo álbum de fotos antigo
+   - Cores sépia e vintage
+   - Efeitos de polaroid
+   - Responsivo e elegante
+
+👨‍💻 AUTOR: Carlos A O Piquet
+📅 DATA: 2025
+
+==========================================================================
+*/
+
+/* ===== RESET E BASE ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #f5f1eb 0%, #e8ddd4 100%);
+    color: #3a3a3a;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* ===== CABEÇALHO ===== */
+.gallery-header {
+    background: linear-gradient(135deg, #8b7355 0%, #6d5a47 100%);
+    color: #f5f1eb;
+    padding: 3rem 2rem;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.gallery-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.gallery-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+.back-to-map {
+    background: rgba(245, 241, 235, 0.15);
+    border: 2px solid #f5f1eb;
+    color: #f5f1eb;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.back-to-map:hover {
+    background: #f5f1eb;
+    color: #6d5a47;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== CONTAINER PRINCIPAL ===== */
+.gallery-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+}
+
+/* ===== GRID DE FOTOS ===== */
+.photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2.5rem;
+    justify-items: center;
+}
+
+/* ===== CARDS DAS FOTOS ===== */
+.photo-card {
+    perspective: 1000px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.photo-card:hover {
+    transform: scale(1.05) rotate(1deg);
+}
+
+.photo-frame {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.15),
+        0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    transition: all 0.4s ease;
+    max-width: 300px;
+    width: 100%;
+}
+
+.photo-frame:hover {
+    box-shadow: 
+        0 15px 40px rgba(0, 0, 0, 0.25),
+        0 5px 15px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px) rotateX(5deg);
+}
+
+.photo-frame::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+.photo-img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 4px;
+    filter: sepia(10%) contrast(1.1) brightness(1.05);
+    transition: filter 0.3s ease;
+}
+
+.photo-card:hover .photo-img {
+    filter: sepia(0%) contrast(1.2) brightness(1.1);
+}
+
+/* ===== OVERLAY DE INFORMAÇÕES ===== */
+.photo-overlay {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    right: 15px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+    color: white;
+    padding: 20px 15px 15px;
+    border-radius: 0 0 4px 4px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.photo-card:hover .photo-overlay {
+    opacity: 1;
+}
+
+.photo-info h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.photo-info p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+/* ===== MODAL PARA VISUALIZAÇÃO EXPANDIDA ===== */
+.photo-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 2rem;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 80%;
+    max-height: 80%;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 30px;
+    cursor: pointer;
+    color: #666;
+    z-index: 10001;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.close-modal:hover {
+    background: rgba(0, 0, 0, 0.2);
+    color: #333;
+}
+
+.modal-img {
+    width: 100%;
+    height: auto;
+    max-height: 60vh;
+    object-fit: contain;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.modal-info {
+    text-align: center;
+    padding: 10px;
+}
+
+.modal-info h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: #6d5a47;
+    margin-bottom: 10px;
+}
+
+.modal-info p {
+    color: #666;
+    font-size: 1rem;
+}
+
+/* ===== RODAPÉ ===== */
+.gallery-footer {
+    background: linear-gradient(135deg, #6d5a47 0%, #5a4a38 100%);
+    color: #f5f1eb;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 4rem;
+}
+
+.footer-content p {
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.footer-content p:last-child {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+
+/* Tablets */
+@media (max-width: 1024px) {
+    .gallery-title {
+        font-size: 2.5rem;
+    }
+    
+    .photos-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+    
+    .gallery-container {
+        padding: 3rem 1.5rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .gallery-header {
+        padding: 2rem 1rem;
+    }
+    
+    .gallery-title {
+        font-size: 2rem;
+    }
+    
+    .gallery-subtitle {
+        font-size: 1rem;
+    }
+    
+    .photos-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .gallery-container {
+        padding: 2rem 1rem;
+    }
+    
+    .photo-frame {
+        max-width: 100%;
+    }
+    
+    .photo-img {
+        height: 200px;
+    }
+    
+    .modal-content {
+        max-width: 95%;
+        max-height: 90%;
+        margin: 1rem;
+    }
+    
+    .modal-img {
+        max-height: 50vh;
+    }
+}
+
+/* Mobile pequeno */
+@media (max-width: 480px) {
+    .gallery-title {
+        font-size: 1.8rem;
+    }
+    
+    .photos-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+    
+    .photo-img {
+        height: 180px;
+    }
+    
+    .gallery-container {
+        padding: 1.5rem 0.5rem;
+    }
+    
+    .back-to-map {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+}
+
+/* ===== ANIMAÇÕES ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.photo-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.photo-card:nth-child(even) {
+    animation-delay: 0.1s;
+}
+
+.photo-card:nth-child(3n) {
+    animation-delay: 0.2s;
+}
+
+/* ===== EFEITOS VINTAGE ===== */
+.photo-frame::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, transparent 50%, rgba(139, 115, 85, 0.1) 100%);
+    pointer-events: none;
+    border-radius: 8px;
+}
+
+/* ===== TEXTO DESTACADO ===== */
+.gallery-title::after {
+    content: '';
+    display: block;
+    width: 100px;
+    height: 3px;
+    background: linear-gradient(to right, #f5f1eb, transparent);
+    margin: 15px auto 0;
+    border-radius: 2px;
+}
+
+/* ===== LOADING STATE ===== */
+.photo-img {
+    background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
+                linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+                linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+.photo-img[src] {
+    background: none;
+}

@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>História do Rio de Janeiro - Livro Interativo</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Crimson+Text:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', Georgia, serif;
+            background: linear-gradient(135deg, #2c1810, #3d2817, #4a3520);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .book-container {
+            position: relative;
+            width: 90vw;
+            max-width: 1200px;
+            height: 80vh;
+            max-height: 800px;
+            perspective: 2000px;
+        }
+
+        .book {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            background: linear-gradient(to right, #e8d5b5 0%, #f4e9d9 50%, #e8d5b5 100%);
+            box-shadow: 
+                0 30px 60px rgba(0,0,0,0.6),
+                0 10px 30px rgba(0,0,0,0.4);
+            border-radius: 8px;
+            display: flex;
+        }
+
+        .page {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            padding: 4rem 3rem;
+            overflow-y: auto;
+            background: linear-gradient(to right, #f9f4ed 0%, #faf6f0 100%);
+        }
+
+        .page.left {
+            left: 0;
+            border-right: 2px solid rgba(139,90,43,0.2);
+            border-radius: 8px 0 0 8px;
+        }
+
+        .page.right {
+            right: 0;
+            border-left: 2px solid rgba(139,90,43,0.2);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .page::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .page::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .page::-webkit-scrollbar-thumb {
+            background: rgba(139,90,43,0.3);
+            border-radius: 4px;
+        }
+
+        /* Spine (lombada) */
+        .book::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 100%;
+            background: linear-gradient(to right, 
+                rgba(0,0,0,0.2) 0%,
+                rgba(0,0,0,0.1) 25%,
+                rgba(0,0,0,0.05) 50%,
+                rgba(0,0,0,0.1) 75%,
+                rgba(0,0,0,0.2) 100%
+            );
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #8b5a2b;
+            margin-bottom: 1rem;
+            text-align: center;
+            border-bottom: 3px double #8b5a2b;
+            padding-bottom: 1rem;
+        }
+
+        .page-subtitle {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            color: #a0785a;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .page-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #3d2817;
+            text-align: justify;
+            margin-bottom: 1.5rem;
+            text-indent: 2em;
+        }
+
+        .page-text:first-of-type::first-letter {
+            font-size: 3.5em;
+            font-weight: bold;
+            float: left;
+            line-height: 0.8;
+            margin: 0.1em 0.1em 0 0;
+            color: #8b5a2b;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .character-box {
+            background: linear-gradient(135deg, rgba(139,90,43,0.1), rgba(160,120,90,0.05));
+            border: 2px solid #d4c5a9;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .character-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #8b5a2b;
+            margin-bottom: 0.5rem;
+        }
+
+        .character-role {
+            font-style: italic;
+            color: #a0785a;
+            margin-bottom: 0.8rem;
+        }
+
+        .page-number {
+            position: absolute;
+            bottom: 2rem;
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            color: #8b5a2b;
+            font-weight: 600;
+        }
+
+        .page.left .page-number {
+            left: 3rem;
+        }
+
+        .page.right .page-number {
+            right: 3rem;
+        }
+
+        /* Cover */
+        .cover {
+            background: linear-gradient(135deg, #6d4423 0%, #8b5a2b 50%, #a0785a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #f9f4ed;
+            position: relative;
+        }
+
+        .cover::before {
+            content: '';
+            position: absolute;
+            inset: 30px;
+            border: 3px double rgba(249,244,237,0.5);
+            border-radius: 4px;
+        }
+
+        .cover-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            font-weight: 800;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            margin-bottom: 1rem;
+            z-index: 1;
+        }
+
+        .cover-subtitle {
+            font-size: 1.8rem;
+            font-style: italic;
+            z-index: 1;
+            margin-bottom: 2rem;
+        }
+
+        .cover-ornament {
+            font-size: 3rem;
+            margin: 1rem 0;
+            z-index: 1;
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(44,24,16,0.95);
+            backdrop-filter: blur(10px);
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #8b5a2b, #6d4423);
+            color: #f9f4ed;
+            border: none;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            background: linear-gradient(135deg, #a0785a, #8b5a2b);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-indicator {
+            color: #f9f4ed;
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            background: rgba(44,24,16,0.95);
+            color: #f9f4ed;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            transform: translateX(-5px);
+            background: rgba(44,24,16,1);
+        }
+
+        .sound-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(44,24,16,0.95);
+            color: #f9f4ed;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .sound-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* Responsividade para Tablets */
+        @media (max-width: 1024px) {
+            .book-container {
+                width: 95vw;
+                height: 85vh;
+            }
+
+            .page {
+                padding: 3rem 2rem;
+            }
+
+            .page-title {
+                font-size: 2.2rem;
+            }
+
+            .page-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .page-text {
+                font-size: 1rem;
+            }
+
+            .cover-title {
+                font-size: 3.5rem;
+            }
+
+            .cover-subtitle {
+                font-size: 1.5rem;
+            }
+
+            .nav-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Responsividade para Celulares */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .book-container {
+                width: 100vw;
+                height: 90vh;
+                max-height: none;
+            }
+
+            .book {
+                flex-direction: column;
+                border-radius: 12px;
+            }
+
+            .page {
+                position: relative;
+                width: 100% !important;
+                height: auto;
+                min-height: 100%;
+                padding: 2.5rem 1.8rem;
+                border: none !important;
+                border-radius: 12px !important;
+            }
+
+            .page.left {
+                display: none; /* Esconde página esquerda no mobile */
+            }
+
+            .page.right {
+                display: block;
+                border-radius: 12px !important;
+            }
+
+            .book::before {
+                display: none; /* Remove lombada no mobile */
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+                margin-bottom: 1rem;
+                padding-bottom: 0.8rem;
+            }
+
+            .page-subtitle {
+                font-size: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .page-text {
+                font-size: 0.95rem;
+                line-height: 1.7;
+                margin-bottom: 1.2rem;
+                text-indent: 1.5em;
+            }
+
+            .page-text:first-of-type::first-letter {
+                font-size: 2.8em;
+            }
+
+            .character-box {
+                padding: 1.2rem;
+                margin: 1.2rem 0;
+            }
+
+            .character-name {
+                font-size: 1.2rem;
+            }
+
+            .character-role {
+                font-size: 0.95rem;
+            }
+
+            .cover-title {
+                font-size: 2.5rem;
+                text-align: center;
+            }
+
+            .cover-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .cover-ornament {
+                font-size: 2rem;
+            }
+
+            .controls {
+                bottom: 1rem;
+                padding: 0.7rem 1.2rem;
+                gap: 0.8rem;
+                border-radius: 40px;
+            }
+
+            .nav-btn {
+                width: 42px;
+                height: 42px;
+                font-size: 1rem;
+            }
+
+            .page-indicator {
+                font-size: 1rem;
+                min-width: 80px;
+            }
+
+            .back-btn {
+                top: 1rem;
+                left: 1rem;
+                padding: 10px 18px;
+                font-size: 0.9rem;
+                gap: 6px;
+            }
+
+            .sound-toggle {
+                top: 1rem;
+                right: 1rem;
+                width: 42px;
+                height: 42px;
+                font-size: 1rem;
+            }
+
+            .page-number {
+                bottom: 1.5rem;
+                font-size: 0.9rem;
+            }
+
+            .page.left .page-number {
+                left: 1.8rem;
+            }
+
+            .page.right .page-number {
+                right: 1.8rem;
+            }
+        }
+
+        /* Responsividade para Celulares Pequenos */
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+
+            .book-container {
+                width: 100vw;
+                height: 92vh;
+            }
+
+            .page {
+                padding: 2rem 1.5rem;
+            }
+
+            .page-title {
+                font-size: 1.6rem;
+            }
+
+            .page-subtitle {
+                font-size: 0.95rem;
+            }
+
+            .page-text {
+                font-size: 0.9rem;
+                line-height: 1.6;
+            }
+
+            .character-box {
+                padding: 1rem;
+            }
+
+            .character-name {
+                font-size: 1.1rem;
+            }
+
+            .cover-title {
+                font-size: 2rem;
+            }
+
+            .cover-subtitle {
+                font-size: 1rem;
+            }
+
+            .controls {
+                bottom: 0.8rem;
+                padding: 0.6rem 1rem;
+                gap: 0.6rem;
+            }
+
+            .nav-btn {
+                width: 38px;
+                height: 38px;
+                font-size: 0.95rem;
+            }
+
+            .page-indicator {
+                font-size: 0.9rem;
+                min-width: 70px;
+            }
+
+            .back-btn {
+                padding: 8px 14px;
+                font-size: 0.85rem;
+            }
+
+            .back-btn i {
+                font-size: 0.8rem;
+            }
+
+            .sound-toggle {
+                width: 38px;
+                height: 38px;
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Landscape mode para celulares */
+        @media (max-width: 900px) and (orientation: landscape) {
+            .book-container {
+                height: 95vh;
+            }
+
+            .page {
+                padding: 1.5rem 1.2rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .page-text {
+                font-size: 0.85rem;
+                line-height: 1.5;
+            }
+
+            .controls {
+                bottom: 0.5rem;
+                padding: 0.5rem 0.8rem;
+            }
+
+            .back-btn {
+                top: 0.5rem;
+                left: 0.5rem;
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+
+            .sound-toggle {
+                top: 0.5rem;
+                right: 0.5rem;
+                width: 36px;
+                height: 36px;
+            }
+        }
+
+        /* Telas muito grandes (4K+) */
+        @media (min-width: 1920px) {
+            .book-container {
+                max-width: 1600px;
+                max-height: 1000px;
+            }
+
+            .page {
+                padding: 5rem 4rem;
+            }
+
+            .page-title {
+                font-size: 3rem;
+            }
+
+            .page-subtitle {
+                font-size: 1.5rem;
+            }
+
+            .page-text {
+                font-size: 1.3rem;
+                line-height: 2;
+            }
+
+            .cover-title {
+                font-size: 5rem;
+            }
+
+            .cover-subtitle {
+                font-size: 2.2rem;
+            }
+
+            .character-box {
+                padding: 2rem;
+            }
+
+            .character-name {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="voltarAoMapa()">
+        <i class="fas fa-arrow-left"></i>
+        Voltar ao Mapa
+    </button>
+
+    <button class="sound-toggle" id="soundToggle">
+        <i class="fas fa-volume-up"></i>
+    </button>
+
+    <div class="book-container">
+        <div class="book">
+            <div class="page left cover" id="leftPage">
+                <div class="cover-ornament">✦</div>
+                <h1 class="cover-title">História do<br>Rio de Janeiro</h1>
+                <p class="cover-subtitle">Uma Jornada Através dos Séculos</p>
+                <div class="cover-ornament">❦</div>
+            </div>
+            
+            <div class="page right" id="rightPage">
+                <h2 class="page-title">Apresentação</h2>
+                <p class="page-text">
+                    Bem-vindo a uma jornada fascinante através da rica história do Rio de Janeiro. Nestas páginas, você descobrirá como a Cidade Maravilhosa se transformou de uma aldeia indígena em uma das metrópoles mais vibrantes do mundo.
+                </p>
+                <p class="page-text">
+                    Desde os tempos pré-coloniais até os dias atuais, cada período deixou suas marcas indeléveis na arquitetura, cultura e identidade carioca. Prepare-se para viajar no tempo e conhecer os personagens e eventos que moldaram o Rio que conhecemos hoje.
+                </p>
+                <div class="character-box">
+                    <div class="character-name">📚 Prof. Carlos Antonio Piquet</div>
+                    <div class="character-role">Professor de História - Faculdade Simonsen</div>
+                    <p>Material educativo desenvolvido com carinho para despertar o interesse pela história local e nacional.</p>
+                </div>
+                <div class="page-number">1</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="nav-btn" id="prevBtn" onclick="previousPage()" disabled>
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="page-indicator">
+            <span id="currentPage">1</span> / <span id="totalPages">10</span>
+        </div>
+        <button class="nav-btn" id="nextBtn" onclick="nextPage()">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <script>
+        const pages = [
+            // CAPA E APRESENTAÇÃO
+            {
+                left: `
+                    <div class="cover-ornament">✦</div>
+                    <h1 class="cover-title">História do<br>Rio de Janeiro</h1>
+                    <p class="cover-subtitle">Uma Jornada Épica Através dos Séculos</p>
+                    <div class="cover-ornament">❦</div>
+                `,
+                leftClass: 'cover',
+                right: `
+                    <h2 class="page-title">Apresentação</h2>
+                    <p class="page-text">
+                        Prepare-se para uma viagem no tempo pela cidade mais incrível do Brasil! 🌟 O Rio de Janeiro não é apenas praias e montanhas - é um verdadeiro livro vivo de histórias épicas, batalhas sangrentas, romance, arte e muita bossa nova.
+                    </p>
+                    <p class="page-text">
+                        De aldeias indígenas a capital do Império, de invasões piratas a berço da música brasileira, o Rio testemunhou momentos que mudaram o Brasil e o mundo. Cada rua conta uma história, cada prédio guarda segredos fascinantes.
+                    </p>
+                    <div class="character-box">
+                        <div class="character-name">📚 Prof. Carlos Antonio Piquet</div>
+                        <div class="character-role">Historiador & Professor</div>
+                        <p>Vamos juntos descobrir por que o Rio de Janeiro é chamado de Cidade Maravilhosa! 🏆</p>
+                    </div>
+                    <div class="page-number">1</div>
+                `
+            },
+            
+            // CAPÍTULO 1: PRÉ-COLONIAL
+            {
+                left: `
+                    <h2 class="page-title">🏹 Era dos Guerreiros</h2>
+                    <p class="page-subtitle">Antes de 1500 - Os Primeiros Cariocas</p>
+                    <p class="page-text">
+                        Muito antes de qualquer português pisar aqui, a Baía de Guanabara fervilhava de vida! Os Tupinambás dominavam estas terras há séculos. Eram guerreiros habilidosos, navegadores experientes e profundos conhecedores da natureza.
+                    </p>
+                    <p class="page-text">
+                        Imagine: florestas densas onde hoje está a Avenida Rio Branco, onças caçando onde hoje ficam os shoppings, e tribos inteiras vivendo onde agora é a Zona Sul. A Baía de Guanabara era chamada de "seio do mar" - um paraíso tropical!
+                    </p>
+                    <div class="page-number">2</div>
+                `,
+                right: `
+                    <h3 class="page-subtitle" style="margin-top: 2rem;">Os Verdadeiros Nativos</h3>
+                    <div class="character-box">
+                        <div class="character-name">👤 Cunhambebe</div>
+                        <div class="character-role">O Grande Líder Tupinambá</div>
+                        <p>O chefe mais poderoso da região! Controlava dezenas de aldeias e milhares de guerreiros. Quando os franceses chegaram, fez aliança com eles contra os portugueses. Era conhecido por sua astúcia militar e força descomunal. Dizem que tinha mais de 2 metros de altura!</p>
+                    </div>
+                    <p class="page-text">
+                        <strong>Curiosidade:</strong> Os Tupinambás eram tão bons navegadores que construíam canoas capazes de transportar 60 pessoas! Eles pescavam, caçavam, plantavam mandioca e tinham uma sociedade organizada com leis próprias.
+                    </p>
+                    <div class="page-number">3</div>
+                `
+            },
+
+            // CAPÍTULO 2: A INVASÃO FRANCESA
+            {
+                left: `
+                    <h2 class="page-title">🏴‍☠️ Piratas na Baía!</h2>
+                    <p class="page-subtitle">1555-1567 - A França Antártica</p>
+                    <p class="page-text">
+                        Plot twist histórico! Os primeiros europeus a colonizarem o Rio não foram os portugueses - foram os FRANCESES! 🇫🇷 Em 1555, o almirante Nicolas Durand de Villegaignon desembarcou com 600 colonos e fundou a "França Antártica" na Ilha de Serigipe (atual Ilha de Villegaignon).
+                    </p>
+                    <p class="page-text">
+                        Por 12 anos, os franceses dominaram a Baía de Guanabara! Construíram o Forte Coligny, fizeram aliança com os Tupinambás e sonhavam em criar uma colônia francesa nos trópicos. Portugal entrou em pânico - não podia perder esta região estratégica!
+                    </p>
+                    <div class="page-number">4</div>
+                `,
+                right: `
+                    <div class="character-box">
+                        <div class="character-name">🏴‍☠️ Nicolas de Villegaignon</div>
+                        <div class="character-role">Almirante Francês</div>
+                        <p>Cavaleiro da Ordem de Malta, navegador experiente e visionário. Queria criar um refúgio para protestantes na América. Mas era também autoritário e cruel - suas leis rígidas fizeram até franceses se voltarem contra ele!</p>
+                    </div>
+                    <p class="page-text">
+                        <strong>Batalha Épica:</strong> Portugal enviou uma frota gigante comandada pelo governador Mem de Sá para expulsar os franceses. Foram anos de combates sangrentos na baía, com canhões trovejando, navios afundando e alianças indígenas mudando de lado!
+                    </p>
+                    <div class="page-number">5</div>
+                `
+            },
+
+            // CAPÍTULO 3: FUNDAÇÃO DO RIO
+            {
+                left: `
+                    <h2 class="page-title">⚔️ Nasce uma Cidade</h2>
+                    <p class="page-subtitle">1565 - São Sebastião do Rio de Janeiro</p>
+                    <p class="page-text">
+                        Em 1º de março de 1565, entre o Morro Cara de Cão e o Pão de Açúcar, Estácio de Sá fundou oficialmente a cidade de São Sebastião do Rio de Janeiro. Era apenas uma pequena vila fortificada, mas marcava o início de algo GRANDIOSO!
+                    </p>
+                    <p class="page-text">
+                        A batalha pela cidade ainda não tinha acabado. Franceses e Tupinambás atacavam constantemente. Estácio de Sá liderava pessoalmente as defesas, mas em uma batalha violenta em 1567, foi atingido por uma flecha no rosto. Morreu um mês depois, tornando-se herói e mártir da cidade.
+                    </p>
+                    <div class="page-number">6</div>
+                `,
+                right: `
+                    <div class="character-box">
+                        <div class="character-name">⚔️ Estácio de Sá</div>
+                        <div class="character-role">Fundador e Herói</div>
+                        <p>Com apenas 32 anos, liderou a expedição que fundou o Rio. Corajoso até o fim, lutou bravamente mesmo ferido. A estátua dele está na Praça XV - visite! Seu tio, Mem de Sá, assumiu após sua morte e finalmente expulsou os franceses definitivamente.</p>
+                    </div>
+                    <p class="page-text">
+                        <strong>1567:</strong> Vitória total sobre os franceses! A cidade se mudou para o Morro do Castelo (demolido em 1922), posição mais segura e estratégica. Ali começou a crescer o que seria a maior cidade do Brasil! 🏆
+                    </p>
+                    <div class="page-number">7</div>
+                `
+            },
+
+            // CAPÍTULO 4: ERA COLONIAL
+            {
+                left: `
+                    <h2 class="page-title">⛪ A Cidade Cresce</h2>
+                    <p class="page-subtitle">1600-1700 - Ouro, Escravos e Piratas</p>
+                    <p class="page-text">
+                        O Rio cresceu devagar no século XVII - era só uma cidade portuária mediana. Mas tudo mudou quando descobriram OURO em Minas Gerais! 💰 Toneladas de ouro desciam das montanhas direto para o porto do Rio, que explodiu em riqueza e importância!
+                    </p>
+                    <p class="page-text">
+                        O porto virou o mais movimentado do Brasil. Navios de todas as partes vinham buscar ouro, açúcar, tabaco. Mas também trouxeram algo terrível: milhares de africanos escravizados. O Rio se tornou o maior porto escravagista das Américas - uma marca trágica na nossa história.
+                    </p>
+                    <div class="page-number">8</div>
+                `,
+                right: `
+                    <p class="page-text">
+                        <strong>1710-1711:</strong> ATAQUE PIRATA! 🏴‍☠️ O francês Jean-François Duclerc invadiu a cidade com 1.300 homens. Falhou e foi capturado. Mas no ano seguinte, René Duguay-Trouin veio com 18 navios de guerra e conseguiu invadir! Saqueou a cidade por 2 meses até Portugal pagar resgate gigantesco!
+                    </p>
+                    <div class="character-box">
+                        <div class="character-name">💎 Mestre Valentim</div>
+                        <div class="character-role">Artista Genial</div>
+                        <p>Filho de português com africana, tornou-se o maior escultor do Brasil colonial! Criou o Chafariz das Saracuras, a Fonte dos Amores no Passeio Público e várias obras que decoram igrejas históricas. Prova de que talento não tem cor!</p>
+                    </div>
+                    <div class="page-number">9</div>
+                `
+            },
+
+            // CAPÍTULO 5: CAPITAL DO BRASIL
+            {
+                left: `
+                    <h2 class="page-title">👑 Capital do Reino</h2>
+                    <p class="page-subtitle">1763 - Rio Vira o Centro do Poder</p>
+                    <p class="page-text">
+                        Em 1763, decisão histórica: Rio de Janeiro torna-se a CAPITAL do Brasil, roubando o título de Salvador! Por quê? Simples: ouro de Minas, localização estratégica e crescimento explosivo tornaram o Rio impossível de ignorar.
+                    </p>
+                    <p class="page-text">
+                        A cidade ganhou palácios, igrejas barrocas incríveis (como a Igreja da Candelária e o Mosteiro de São Bento), fortificações poderosas e começou a ter cara de metrópole. Ruas foram calçadas, iluminação pública instalada e o comércio fervilhava!
+                    </p>
+                    <div class="page-number">10</div>
+                `,
+                right: `
+                    <div class="character-box">
+                        <div class="character-name">🎭 Aleijadinho (visita ao Rio)</div>
+                        <div class="character-role">Maior Artista Barroco do Brasil</div>
+                        <p>Embora fosse de Minas Gerais, Antônio Francisco Lisboa (o Aleijadinho) influenciou enormemente a arte carioca. Suas técnicas barrocas inspiraram artistas do Rio. Mesmo deformado por doença, criou obras-primas que são patrimônio da humanidade!</p>
+                    </div>
+                    <p class="page-text">
+                        <strong>Vida Colonial:</strong> O Rio tinha uns 50 mil habitantes. Ricos moravam em sobrados, pobres em cortiços. Escravos eram maioria. Havia festas religiosas grandiosas, procissões, mas também muita desigualdade e violência.
+                    </p>
+                    <div class="page-number">11</div>
+                `
+            },
+
+            // CAPÍTULO 6: FAMÍLIA REAL
+            {
+                left: `
+                    <h2 class="page-title">🚢 A Realeza Chega!</h2>
+                    <p class="page-subtitle">1808 - O Dia Que Mudou Tudo</p>
+                    <p class="page-text">
+                        Imagine: Napoleão está conquistando a Europa. Portugal vai cair. O que fazer? Dom João VI teve uma ideia GENIAL e maluca: mudar a corte INTEIRA para o Brasil! 🤯 Em 1808, 15 mil portugueses (nobreza, funcionários, militares) atravessaram o Atlântico e desembarcaram no Rio!
+                    </p>
+                    <p class="page-text">
+                        O Rio nunca mais foi o mesmo! De colônia, virou SEDE DO IMPÉRIO PORTUGUÊS - algo inédito na história! Era como se Londres se mudasse para Nova York. Dom João transformou o Rio numa metrópole europeia nos trópicos!
+                    </p>
+                    <div class="page-number">12</div>
+                `,
+                right: `
+                    <div class="character-box">
+                        <div class="character-name">👑 Dom João VI</div>
+                        <div class="character-role">O Rei Fugitivo</div>
+                        <p>Gordo, amante de frango assado, meio covarde mas astuto! Salvou Portugal de desaparecer e transformou o Brasil. Criou o Banco do Brasil, a Imprensa Régia, o Jardim Botânico, abriu os portos e trouxe a Missão Artística Francesa. Também adorava bibliotecas!</p>
+                    </div>
+                    <p class="page-text">
+                        <strong>Melhorias:</strong> Teatro Real (depois Teatro João Caetano), Real Academia Militar, Biblioteca Real (60 mil livros!), Jardim Botânico, Imprensa Régia, Faculdade de Medicina. O Rio virou cultural e científico!
+                    </p>
+                    <div class="page-number">13</div>
+                `
+            },
+
+            // CAPÍTULO 7: INDEPENDÊNCIA
+            {
+                left: `
+                    <h2 class="page-title">🇧🇷 Nasce uma Nação</h2>
+                    <p class="page-subtitle">1822 - Brasil Independente</p>
+                    <p class="page-text">
+                        1821: Dom João VI volta para Portugal. Deixa seu filho Dom Pedro I aqui. Portugal quer que o Brasil volte a ser colônia. Dom Pedro diz: "NOPE!" 🙅‍♂️ Em 7 de setembro de 1822, às margens do Ipiranga em São Paulo, grita "Independência ou Morte!"
+                    </p>
+                    <p class="page-text">
+                        Mas a verdadeira festa foi no Rio! Em 1º de dezembro de 1822, Dom Pedro I foi coroado Imperador na antiga Capela Real (hoje Catedral Metropolitana). O Brasil tinha seu próprio império! O Rio, claro, era a capital imperial - a cidade mais importante da América do Sul!
+                    </p>
+                    <div class="page-number">14</div>
+                `,
+                right: `
+                    <div class="character-box">
+                        <div class="character-name">👑 Dom Pedro I</div>
+                        <div class="character-role">O Imperador Rebelde</div>
+                        <p>Jovem, impetuoso, mulherengo e genial! Além de imperador, era músico talentoso (compôs o Hino da Independência). Teve casos amorosos escandalosos, incluindo com a Marquesa de Santos. Abdicou em 1831 e voltou para Portugal lutar por sua filha. Morreu aos 35 anos de tuberculose.</p>
+                    </div>
+                    <p class="page-text">
+                        <strong>Heroína:</strong> Maria Leopoldina, esposa de Pedro I, foi fundamental na Independência! Austríaca culta e inteligente, articulou apoio político enquanto Pedro viajava. Morreu jovem, mas sem ela talvez não houvesse Brasil independente!
+                    </p>
+                    <div class="page-number">15</div>
+                `
+            },
+
+            // CAPÍTULO 8: IMPÉRIO
+            {
+                left: `
+                    <h2 class="page-title">🎩 A Era de Ouro</h2>
+                    <p class="page-subtitle">1840-1889 - Dom Pedro II Reina</p>
+                    <p class="page-text">
+                        Com apenas 14 anos, Dom Pedro II assumiu o trono em 1840. Reinou por 49 anos! Foi o melhor imperador que o Brasil poderia ter: inteligente, justo, amante das ciências e das artes. Transformou o Rio na "Paris dos Trópicos"! 🎭
+                    </p>
+                    <p class="page-text">
+                        O Rio fervilhava! Teatros, óperas, saraus literários, cafés elegantes. A cidade ganhou iluminação a gás (1854), depois elétrica (1879 - uma das primeiras do mundo!), bondes, aqueduto da Lapa (1750-1896), Jardim Botânico expandido. Era cosmopolita e moderna!
+                    </p>
+                    <div class="page-number">16</div>
+                `,
+                right: `
+                    <div class="character-box">
+                        <div class="character-name">👨‍🎓 Dom Pedro II</div>
+                        <div class="character-role">O Imperador Sábio</div>
+                        <p>Falava 14 idiomas! Era amigo de cientistas famosos como Graham Bell, Victor Hugo e Pasteur. Fotografava, estudava astronomia, apoiou Santos Dumont. Defendia a abolição e educação universal. Foi deposto em 1889 por um golpe militar - morreu exilado e triste em Paris.</p>
+                    </div>
+                    <p class="page-text">
+                        <strong>1888 - LEI ÁUREA:</strong> A Princesa Isabel, filha de Pedro II, assinou a lei que aboliu a escravidão! O Brasil foi o último país das Américas a fazer isso. Foram 350 anos de escravidão - uma dívida histórica que ainda sentimos.
+                    </p>
+                    <div class="page-number">17</div>
+                `
+            },
+
+            // CAPÍTULO 9: REPÚBLICA
+            {
+                left: `
+                    <h2 class="page-title">🏛️ Viva a República!</h2>
+                    <p class="page-subtitle">1889 - Bye, Bye Monarquia</p>
+                    <p class="page-text">
+                        15 de novembro de 1889: o Marechal Deodoro da Fonseca lidera um golpe militar e proclama a República! Dom Pedro II foi expulso (injustamente - ele era querido pelo povo). O Brasil virou Estados Unidos dos Estados Unidos do Brasil. Sim, esse era o nome! 😅
+                    </p>
+                    <p class="page-text">
+                        O Rio continuou como capital. Mas agora era capital REPUBLICANA. Precisava se modernizar ainda mais, mostrar que o Brasil era civilizado e europeu. Surgiram grandes obras de infraestrutura e a cidade explodiria em população nas décadas seguintes.
+                    </p>
+                    <div class="page-number">18</div>
+                `,
+                right: `
+                    <div class="character-box">
+                        <div class="character-name">⚔️ Marechal Deodoro da Fonseca</div>
+                        <div class="character-role">1º Presidente</div>
+                        <p>Militar alagoano que liderou o golpe republicano. Governou apenas 9 meses - renunciou por problemas de saúde e conflitos políticos. Morreu 2 anos depois. Seu vice, Floriano Peixoto, foi quem consolidou a república - com mão de ferro!</p>
+                    </div>
+                    <p class="page-text">
+                        <strong>Revolta da Armada (1893):</strong> A Marinha se rebelou contra Floriano Peixoto! Navios de guerra bombardearam o Rio por meses! A cidade virou zona de guerra. Floriano resistiu e venceu - ganhou o apelido de "Marechal de Ferro".
+                    </p>
+                    <div class="page-number">19</div>
+                `
+            },
+
+            // CAPÍTULO 10: BELLE ÉPOQUE
+            {
+                left: `
+                    <h2 class="page-title">🎭 Belle Époque Tropical</h2>
+                    <p class="page-subtitle">1900-1920 - Modernização Radical</p>
+                    <p class="page-text">
+                        1902: O prefeito Pereira Passos decidiu: "Vamos transformar o Rio em Paris!" Começou a maior reforma urbana da história brasileira! Demoliu cortiços, alargou ruas, criou a Avenida Central (hoje Rio Branco) - uma avenida gigante inspirada nos Champs-Élysées!
+                    </p>
+                    <p class="page-text">
+                        Foi brutal! Milhares de pessoas pobres foram expulsas do centro. Cortiços derrubados sem dó. A população pobre foi empurrada para os morros - nascem as primeiras favelas. Mas visualmente, o Rio ficou lindo: prédios art nouveau, teatros luxuosos, cafés elegantes.
+                    </p>
+                    <div class="page-number">20</div>
+                `,
+                right: `
+                    <div class="character-box">
+                        <div class="character-name">🏗️ Pereira Passos</div>
+                        <div class="character-role">Prefeito Demolidor</div>
+                        <p>Engenheiro que estudou em Paris, voltou com ideias modernistas. Seu lema: "O Rio civiliza-se!" Construiu túneis, modernizou o porto, criou parques. Mas também foi autoritário - ganhou apelido de "Bota-Abaixo". Para o bem ou para o mal, criou o Rio moderno!</p>
+                    </div>
+                    <p class="page-text">
+                        <strong>1904 - REVOLTA DA VACINA:</strong> Oswaldo Cruz quis vacinar todo mundo contra varíola. O povo, já irritado com as demolições, se revoltou! Achavam que era conspiração. Houve batalhas nas ruas, bondes destruídos, barricadas. O exército massacrou a revolta.
+                    </p>
+                    <div class="page-number">21</div>
+                `
+            },
+
+            // CAPÍTULO 11: ANOS DOURADOS
+            {
+                left: `
+                    <h2 class="page-title">🎶 Nasce a Bossa Nova</h2>
+                    <p class="page-subtitle">1920-1960 - Cultura Explode</p>
+                    <p class="page-text">
+                        Os anos 1920-60 foram MÁGICOS para o Rio! A cidade virou o centro cultural do Brasil. O samba nasceu nos morros e conquistou a cidade inteira. Em 1932, surgiu o primeiro desfile oficial de Carnaval. O Maracanã foi construído para a Copa de 1950!
+                    </p>
+                    <p class="page-text">
+                        Copacabana explodiu! Virou o bairro mais moderno e desejado. Prédios art déco surgiram por toda parte. O Teatro Municipal fervilhava com óperas e balés. O Cristo Redentor foi inaugurado em 1931 - símbolo eterno do Rio! 🙌
+                    </p>
+                    <div class="page-number">22</div>
+                `,
+                right: `
+                    <div class="character-box">
+                        <div class="character-name">🎵 Tom Jobim & Vinicius de Moraes</div>
+                        <div class="character-role">Pais da Bossa Nova</div>
+                        <p>Na década de 1950-60, esses gênios criaram a Bossa Nova - fusão de samba com jazz. "Garota de Ipanema" virou hit mundial! João Gilberto completava o trio. Transformaram a música brasileira e conquistaram o planeta! 🌍</p>
+                    </div>
+                    <p class="page-text">
+                        <strong>1950 - MARACANAZO:</strong> Brasil vs Uruguai, final da Copa. 200 mil pessoas no Maracanã (recorde até hoje!). Brasil só precisava empatar. Perdeu de 2x1. Foi tragédia nacional! Jogadores choraram, país entrou em luto. Até hoje dói! 😭
+                    </p>
+                    <div class="page-number">23</div>
+                `
+            },
+
+            // CAPÍTULO 12: CAPITAL MODERNA
+            {
+                left: `
+                    <h2 class="page-title">🏙️ Perdendo o Trono</h2>
+                    <p class="page-subtitle">1960 - Brasília Vira Capital</p>
+                    <p class="page-text">
+                        21 de abril de 1960: aconteceu o impensável. Depois de quase 200 anos como capital, o Rio PERDEU o título para Brasília! O presidente Juscelino Kubitschek construiu uma cidade do zero no meio do cerrado e mudou a capital.
+                    </p>
+                    <p class="page-text">
+                        Foi traumático para os cariocas! A cidade perdeu prestígio, verbas federais, importância política. Muita gente saiu. Mas o Rio resistiu! Tornou-se Estado da Guanabara (1960-1975) e depois se fundiu com o Estado do Rio. Continuou sendo o coração cultural do Brasil!
+                    </p>
+                    <div class="page-number">24</div>
+                `,
+                right: `
+                    <p class="page-text">
+                        <strong>Anos 1960-70:</strong> Ditadura militar. O Rio foi palco de muita resistência. Passeatas estudantis, shows de protesto, artistas perseguidos. Chico Buarque, Caetano Veloso, Gilberto Gil fizeram músicas cifradas criticando o regime. A juventude lutava pela liberdade!
+                    </p>
+                    <div class="character-box">
+                        <div class="character-name">🎤 Chico Buarque</div>
+                        <div class="character-role">Poeta da Resistência</div>
+                        <p>Filho do historiador Sérgio Buarque de Holanda, Chico se tornou a voz da resistência. Suas músicas driblavam a censura com metáforas geniais. "Cálice", "Apesar de Você", "Vai Passar" são hinos! Até hoje é ícone cultural carioca!</p>
+                    </div>
+                    <div class="page-number">25</div>
+                `
+            },
+
+            // CAPÍTULO 13: REDEMOCRATIZAÇÃO
+            {
+                left: `
+                    <h2 class="page-title">🗽 Liberdade Reconquistada</h2>
+                    <p class="page-subtitle">1980-2000 - Rio Renasce</p>
+                    <p class="page-text">
+                        Anos 1980: a ditadura acabou! O Brasil voltou a ser democrático. O Rio respirou aliviado. Veio a abertura política, eleições diretas, nova Constituição (1988). A cidade voltou a ser palco de grandes shows, festivais, manifestações culturais!
+                    </p>
+                    <p class="page-text">
+                        O Rock in Rio estreou em 1985 - maior festival de rock do mundo! Queen, AC/DC, Iron Maiden tocaram para multidões. A Lapa renasceu como centro boêmio. O funk carioca explodiu nas favelas. O Rio mostrava sua diversidade cultural única!
+                    </p>
+                    <div class="page-number">26</div>
+                `,
+                right: `
+                    <div class="character-box">
+                        <div class="character-name">🌟 Oscar Niemeyer</div>
+                        <div class="character-role">Arquiteto Genial</div>
+                        <p>Carioca, viveu 104 anos! Criou obras icônicas no Rio: Museu de Arte Contemporânea de Niterói (aquele disco voador!), Sambódromo, Teatro Popular de Niterói. Seu estilo curvilíneo modernista marcou a arquitetura brasileira para sempre!</p>
+                    </div>
+                    <p class="page-text">
+                        <strong>1992 - ECO-92:</strong> O Rio sediou a maior conferência ambiental da ONU! Líderes de 178 países vieram discutir meio ambiente. A cidade mostrou para o mundo sua beleza natural e se posicionou como líder em sustentabilidade!
+                    </p>
+                    <div class="page-number">27</div>
+                `
+            },
+
+            // CAPÍTULO 14: SÉCULO XXI
+            {
+                left: `
+                    <h2 class="page-title">🏆 Megaeventos</h2>
+                    <p class="page-subtitle">2007-2016 - Rio no Palco Mundial</p>
+                    <p class="page-text">
+                        O Rio ganhou TUDO! Pan-Americano (2007), Copa do Mundo (2014), Olimpíadas (2016) - primeira da América do Sul! A cidade passou por mega-transformação: Porto Maravilha revitalizado, VLT, museus novos, favelas pacificadas (temporariamente).
+                    </p>
+                    <p class="page-text">
+                        As Olimpíadas de 2016 foram históricas! Usain Bolt tricampeão, Michael Phelps se despedindo, Brasil campeão de futebol (finalmente! ⚽🏅). O mundo inteiro viu o Cristo Redentor, o Pão de Açúcar, a Lagoa. O Rio provou que é MARAVILHOSO mesmo!
+                    </p>
+                    <div class="page-number">28</div>
+                `,
+                right: `
+                    <div class="character-box">
+                        <div class="character-name">🎨 Kobra</div>
+                        <div class="character-role">Grafiteiro Mundial</div>
+                        <p>Eduardo Kobra criou o maior mural do mundo para as Olimpíadas no Porto Maravilha: "Etnias", com 3.000m²! Representa os cinco continentes em cores vibrantes. Transformou o porto e mostrou que grafite é ARTE!</p>
+                    </div>
+                    <p class="page-text">
+                        <strong>Desafios:</strong> Mas nem tudo são flores. O Rio enfrenta problemas sérios: violência urbana, desigualdade social, crise econômica. As UPPs não funcionaram como esperado. Muitas obras olímpicas foram abandonadas. A luta continua...
+                    </p>
+                    <div class="page-number">29</div>
+                `
+            },
+
+            // CAPÍTULO 15: RIO HOJE
+            {
+                left: `
+                    <h2 class="page-title">🌆 Rio Atual</h2>
+                    <p class="page-subtitle">2020-2025 - Resistindo & Reinventando</p>
+                    <p class="page-text">
+                        O Rio de hoje é cidade de contrastes: mansões e favelas, cultura erudita e funk, praias paradisíacas e problemas urbanos. Mas continua sendo a CIDADE MARAVILHOSA! Nenhuma outra cidade brasileira tem essa magia, essa energia, essa diversidade!
+                    </p>
+                    <p class="page-text">
+                        A pandemia de COVID-19 (2020-22) foi dura, mas o carioca resistiu com sua alegria característica. Hoje o Rio investe em tecnologia, cultura, turismo sustentável. Novos museus, revitalização de áreas históricas, valorização da cultura de raiz.
+                    </p>
+                    <div class="page-number">30</div>
+                `,
+                right: `
+                    <p class="page-text">
+                        <strong>Patrimônios UNESCO:</strong> O Rio tem lugares reconhecidos como Patrimônio da Humanidade! A paisagem entre a montanha e o mar, o Cais do Valongo (por onde entraram milhões de escravos), o Jardim Botânico. São tesouros mundiais!
+                    </p>
+                    <div class="character-box">
+                        <div class="character-name">🎬 Anitta</div>
+                        <div class="character-role">Pop Star Global</div>
+                        <p>Da Honório Gurgel para o mundo! Anitta é a primeira brasileira no top 1 do Spotify global. Canta em 4 idiomas, fez parceria com Madonna, Cardi B, Maluma. Mostra que o Rio ainda é fábrica de talentos mundiais! 🌟</p>
+                    </div>
+                    <div class="page-number">31</div>
+                `
+            },
+
+            // CAPÍTULO 16: CULTURA CARIOCA
+            {
+                left: `
+                    <h2 class="page-title">🎭 DNA Carioca</h2>
+                    <p class="page-subtitle">O Que Torna o Rio Único</p>
+                    <p class="page-text">
+                        O que define o carioca? É a mistura impossível! Indígenas, portugueses, africanos, italianos, japoneses, libaneses - todos se fundiram criando uma cultura única no planeta! É a praia democrática onde rico e pobre dividem a areia.
+                    </p>
+                    <p class="page-text">
+                        É o samba que nasceu nos morros e conquistou salões nobres. É o funk que irrita os conservadores mas faz o mundo dançar. É o jeitinho carioca - nem sempre certo, mas sempre criativo. É a irreverência, a alegria na adversidade, o "deixa a vida me levar"!
+                    </p>
+                    <div class="page-number">32</div>
+                `,
+                right: `
+                    <div class="character-box">
+                        <div class="character-name">🥁 Portela & Mangueira</div>
+                        <div class="character-role">Escolas Lendárias</div>
+                        <p>As escolas de samba são universidades populares! A Portela (fundada em 1923) e Mangueira (1928) são patrimônios culturais. Cantam história, crítica social, poesia. O desfile é tese de doutorado em forma de festa! 🎉</p>
+                    </div>
+                    <p class="page-text">
+                        <strong>Comida:</strong> Feijoada aos sábados, churrasco na laje, caipirinha, açaí, mate gelado, biscoito Globo, sanduíche do Bob's... A gastronomia carioca é eclética e deliciosa! Ah, e é "biscoito", não bolacha! 😄
+                    </p>
+                    <div class="page-number">33</div>
+                `
+            },
+
+            // CAPÍTULO 17: LUGARES ICÔNICOS
+            {
+                left: `
+                    <h2 class="page-title">📍 Tour Obrigatório</h2>
+                    <p class="page-subtitle">Lugares Que Você TEM Que Conhecer</p>
+                    <p class="page-text">
+                        <strong>🗿 Cristo Redentor:</strong> 38 metros de altura, eleito uma das 7 Maravilhas do Mundo Moderno! Inaugurado em 1931, recebe milhões de turistas. A vista lá de cima é de tirar o fôlego - literalmente vale a pena!
+                    </p>
+                    <p class="page-text">
+                        <strong>🍞 Pão de Açúcar:</strong> Bondinho pendurado há 100 anos! Sobe 396 metros. Lá de cima você vê toda a Baía de Guanabara, as praias, a cidade. Melhor pôr do sol do Rio!
+                    </p>
+                    <p class="page-text">
+                        <strong>⚽ Maracanã:</strong> O templo do futebol! Já recebeu 200 mil pessoas numa partida. Pelé fez seu milésimo gol aqui. Sediou duas Copas (1950 e 2014) e Olimpíadas (2016). É sagrado!
+                    </p>
+                    <div class="page-number">34</div>
+                `,
+                right: `
+                    <p class="page-text">
+                        <strong>🏛️ Theatro Municipal:</strong> Inaugurado em 1909, cópia da Ópera de Paris. Já recebeu Caruso, Pavlova, Nijinsky. É luxo puro! Visite!
+                    </p>
+                    <p class="page-text">
+                        <strong>🎨 Museu do Amanhã:</strong> Arquitetura futurista de Calatrava no Porto Maravilha. Fala sobre ciência, futuro, sustentabilidade. Interativo e incrível!
+                    </p>
+                    <p class="page-text">
+                        <strong>🏖️ Copacabana & Ipanema:</strong> As praias mais famosas do mundo! O calçadão de Copacabana desenhado por Burle Marx é obra de arte. Ipanema inspirou "Garota de Ipanema". Imperdíveis!
+                    </p>
+                    <p class="page-text">
+                        <strong>🌺 Jardim Botânico:</strong> 54 hectares de natureza no meio da cidade. As palmeiras imperiais têm 40 metros! Perfeito para relaxar.
+                    </p>
+                    <div class="page-number">35</div>
+                `
+            },
+
+            // CAPÍTULO 18: CURIOSIDADES
+            {
+                left: `
+                    <h2 class="page-title">🤓 Você Sabia?</h2>
+                    <p class="page-subtitle">Fatos Incríveis Sobre o Rio</p>
+                    <p class="page-text">
+                        • O Rio foi capital de Portugal, Brasil e Império Português - único lugar do mundo com esse feito! 👑
+                    </p>
+                    <p class="page-text">
+                        • O Cristo Redentor foi atingido por raios mais de 1000 vezes! Tem para-raios especiais. ⚡
+                    </p>
+                    <p class="page-text">
+                        • A Biblioteca Nacional do Rio é a 7ª maior do mundo! Tem 9 milhões de itens, incluindo manuscritos medievais raríssimos. 📚
+                    </p>
+                    <p class="page-text">
+                        • O Réveillon de Copacabana é o maior do PLANETA! Até 3 milhões de pessoas na praia! 🎆
+                    </p>
+                    <div class="page-number">36</div>
+                `,
+                right: `
+                    <p class="page-text">
+                        • Santos Dumont morava no Rio quando inventou o avião! Fez experimentos na Baía de Guanabara. ✈️
+                    </p>
+                    <p class="page-text">
+                        • O Sambódromo foi projetado por Oscar Niemeyer em apenas 120 dias! Gênio! 🏗️
+                    </p>
+                    <p class="page-text">
+                        • Carmen Miranda nasceu em Portugal mas virou ícone carioca! Levou o samba para Hollywood. 🍌
+                    </p>
+                    <p class="page-text">
+                        • A Confeitaria Colombo (1894) já serviu café para presidentes, reis e artistas mundiais. O interior é art nouveau puro! ☕
+                    </p>
+                    <p class="page-text">
+                        • "Girl from Ipanema" é a segunda música mais gravada da história (só perde para "Yesterday" dos Beatles)! 🎵
+                    </p>
+                    <div class="page-number">37</div>
+                `
+            },
+
+            // CAPÍTULO FINAL: LEGADO
+            {
+                left: `
+                    <h2 class="page-title">💫 O Legado Continua</h2>
+                    <p class="page-subtitle">Por Que o Rio Importa</p>
+                    <p class="page-text">
+                        O Rio de Janeiro não é só uma cidade - é um SENTIMENTO! É onde o Brasil mostrou sua cara para o mundo. Foi daqui que saiu a bossa nova, o funk, o samba. Foi aqui que a democracia brasileira lutou contra ditaduras. É aqui que culturas se misturam há séculos.
+                    </p>
+                    <p class="page-text">
+                        O Rio tem problemas? SIM! Violência, desigualdade, corrupção, abandono. Mas também tem: resistência, criatividade, alegria, diversidade, beleza natural de tirar o fôlego. O carioca nunca desiste. Renasce das cinzas toda vez.
+                    </p>
+                    <div class="page-number">38</div>
+                `,
+                right: `
+                    <p class="page-text">
+                        Cada rua do Centro Histórico conta uma história. Cada prédio testemunhou eventos que mudaram o Brasil. Ao caminhar pelo Paço Imperial, você pisa onde Dom Pedro I pisou. Na Praça XV, você está onde a República foi proclamada. No Theatro Municipal, onde Villa-Lobos apresentou suas sinfonias.
+                    </p>
+                    <p class="page-text">
+                        O Rio é memória viva! É história pulsante! E você faz parte dessa história agora. Ao aprender sobre o passado, você entende o presente e pode construir um futuro melhor para a Cidade Maravilhosa! 🌟
+                    </p>
+                    <div class="character-box">
+                        <div class="character-name">💭 Para Refletir</div>
+                        <p>"O Rio de Janeiro continua lindo!" - mas precisa da nova geração para resolver seus desafios e honrar seu legado glorioso. Você topa esse desafio? 🚀</p>
+                    </div>
+                    <div class="page-number">39</div>
+                `
+            },
+
+            // CONTRACAPA
+            {
+                left: `
+                    <h2 class="page-title">📖 Referências & Leituras</h2>
+                    <p class="page-text" style="font-size: 0.95rem;">
+                        <strong>Livros Recomendados:</strong><br>
+                        • "O Rio de Janeiro do Século XIX" - Luiz Edmundo<br>
+                        • "1808" - Laurentino Gomes<br>
+                        • "Guia da Arquitetura Colonial, Neoclássica e Romântica no Rio de Janeiro" - Cláudio Mello<br>
+                        • "Rio de Memórias" - Ruy Castro<br>
+                        • "História do Brasil" - Boris Fausto
+                    </p>
+                    <p class="page-text" style="font-size: 0.95rem;">
+                        <strong>Museus Imperdíveis:</strong><br>
+                        • Museu Histórico Nacional<br>
+                        • Museu da República<br>
+                        • Museu do Amanhã<br>
+                        • MAR (Museu de Arte do Rio)<br>
+                        • Centro Cultural Banco do Brasil
+                    </p>
+                    <div class="page-number">40</div>
+                `,
+                right: `
+                    <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
+                        <div class="cover-ornament" style="color: #f9f4ed;">✦</div>
+                        <p style="font-size: 1.8rem; color: #f9f4ed; margin: 2rem 0; line-height: 1.6; font-family: 'Playfair Display', serif; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                            "O Rio de Janeiro é uma festa que dura 365 dias por ano."
+                        </p>
+                        <p style="font-size: 1.2rem; color: #f9f4ed; margin: 1rem 0; font-style: italic; opacity: 0.9;">
+                            - Vinicius de Moraes
+                        </p>
+                        <div class="cover-ornament" style="color: #f9f4ed;">❦</div>
+                        <p style="margin-top: 3rem; color: #f9f4ed; line-height: 1.8; opacity: 0.95;">
+                            <strong style="font-size: 1.1rem;">Prof. Carlos Antonio Oliveira Piquet</strong><br>
+                            <span style="opacity: 0.9;">Professor de História - Faculdade Simonsen</span><br>
+                            <small style="opacity: 0.85;">carlospiquet.projetos@gmail.com</small><br><br>
+                            <small style="opacity: 0.85;">© 2025 - Todos os direitos reservados</small><br>
+                            <small style="opacity: 0.85;">Material Educativo - Uso Acadêmico</small>
+                        </p>
+                        <p style="margin-top: 2rem; font-size: 0.95rem; color: #f9f4ed; opacity: 0.9;">
+                            🌟 Compartilhe o conhecimento!<br>
+                            📚 A História é de todos nós!
+                        </p>
+                    </div>
+                    <div class="page-number">41</div>
+                `,
+                rightClass: 'cover'
+            }
+        ];
+
+        let currentPageIndex = 0;
+        let soundEnabled = true;
+
+        const leftPage = document.getElementById('leftPage');
+        const rightPage = document.getElementById('rightPage');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const currentPageSpan = document.getElementById('currentPage');
+        const totalPagesSpan = document.getElementById('totalPages');
+        const soundToggle = document.getElementById('soundToggle');
+
+        totalPagesSpan.textContent = pages.length;
+
+        // Detecta se é mobile
+        const isMobile = window.innerWidth <= 768;
+
+        // Adiciona indicador de progresso visual
+        const progressBar = document.createElement('div');
+        progressBar.style.cssText = 'position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, #8b5a2b, #d4af37); transition: width 0.3s; z-index: 9999;';
+        document.body.appendChild(progressBar);
+
+        function updatePages() {
+            const page = pages[currentPageIndex];
+            
+            if (isMobile) {
+                // No mobile, mostra apenas a página right com todo o conteúdo
+                leftPage.style.display = 'none';
+                rightPage.style.display = 'block';
+                rightPage.style.width = '100%';
+                rightPage.style.position = 'relative';
+                
+                // Combina conteúdo das duas páginas se necessário
+                if (page.leftClass !== 'cover' && page.rightClass !== 'cover') {
+                    rightPage.innerHTML = page.left + page.right;
+                } else {
+                    rightPage.innerHTML = page.right;
+                }
+                rightPage.className = 'page right ' + (page.rightClass || '');
+            } else {
+                // Desktop: mostra ambas as páginas
+                leftPage.style.display = 'block';
+                rightPage.style.display = 'block';
+                leftPage.innerHTML = page.left;
+                leftPage.className = 'page left ' + (page.leftClass || '');
+                rightPage.innerHTML = page.right;
+                rightPage.className = 'page right ' + (page.rightClass || '');
+            }
+            
+            currentPageSpan.textContent = currentPageIndex + 1;
+            prevBtn.disabled = currentPageIndex === 0;
+            nextBtn.disabled = currentPageIndex === pages.length - 1;
+            
+            // Atualiza barra de progresso
+            const progress = ((currentPageIndex + 1) / pages.length) * 100;
+            progressBar.style.width = progress + '%';
+            
+            // Scroll para o topo das páginas
+            leftPage.scrollTop = 0;
+            rightPage.scrollTop = 0;
+        }
+
+        // Suporte a gestos de swipe para mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) nextPage(); // Swipe left
+            if (touchEndX > touchStartX + 50) previousPage(); // Swipe right
+        }
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        // Recalcula layout ao redimensionar
+        window.addEventListener('resize', () => {
+            location.reload(); // Recarrega para ajustar mobile/desktop
+        });
+
+        function nextPage() {
+            if (currentPageIndex < pages.length - 1) {
+                currentPageIndex++;
+                updatePages();
+                playSound();
+            }
+        }
+
+        function previousPage() {
+            if (currentPageIndex > 0) {
+                currentPageIndex--;
+                updatePages();
+                playSound();
+            }
+        }
+
+        function playSound() {
+            if (soundEnabled) {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2');
+                audio.volume = 0.3;
+                audio.play().catch(() => {});
+            }
+        }
+
+        soundToggle.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundToggle.innerHTML = soundEnabled 
+                ? '<i class="fas fa-volume-up"></i>'
+                : '<i class="fas fa-volume-mute"></i>';
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextPage();
+            if (e.key === 'ArrowLeft') previousPage();
+        });
+
+        // Função para voltar ao mapa
+        function voltarAoMapa() {
+            try {
+                // Tenta voltar na história
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    // Se não há história, vai diretamente para o index
+                    window.location.href = '../index.html';
+                }
+            } catch (error) {
+                // Fallback: vai diretamente para o index
+                window.location.href = '../index.html';
+            }
+        }
+
+        updatePages();
+    </script>
+</body>
+</html>

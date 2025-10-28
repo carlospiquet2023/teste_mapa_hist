@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <!-- ===== META TAGS BÁSICAS ===== -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Centro Histórico do Rio de Janeiro | Mapa Educacional</title>
+    
+    <!-- ===== PWA (PROGRESSIVE WEB APP) META TAGS ===== -->
+    <!-- Define a cor da barra de status em dispositivos móveis -->
+    <meta name="theme-color" content="#FFD700">
+    <!-- Habilita o modo app para iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- Define o estilo da barra de status no iOS -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Título do app quando adicionado à tela inicial -->
+    <meta name="apple-mobile-web-app-title" content="Mapa História RJ">
+    <!-- Habilita funcionalidades de app móvel -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <!-- Desabilita detecção automática de números de telefone -->
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- ===== BIBLIOTECAS EXTERNAS ===== -->
+    <!-- Leaflet.js: Biblioteca para mapas interativos -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Google Fonts: Tipografia profissional -->
+    <!-- Inter: Fonte para corpo do texto (moderna e legível) -->
+    <!-- Playfair Display: Fonte para títulos (elegante e histórica) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome: Ícones vetoriais -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fonte acessível para leitura (fallback caso disponível) -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- ===== ESTILOS PERSONALIZADOS ===== -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/galeria-auto-scroll.css">
+    <link rel="stylesheet" href="css/popup-styles.css">
+</head>
+
+<body>
+    <a class="skip-link" href="#map">Pular para o mapa</a>
+    <!-- ===== INTRO DE VÍDEO ===== -->
+    <!-- Overlay fullscreen com vídeo de introdução -->
+    <div class="video-intro-overlay" id="videoIntroOverlay">
+        <video 
+            id="introVideo" 
+            autoplay 
+            playsinline
+            preload="auto"
+            volume="0.5"
+            data-wc-autoplay-ok="true"
+            aria-label="Vídeo de introdução do Mapa Histórico do Rio de Janeiro"
+            title="Intro - Centro Histórico do Rio de Janeiro">
+            <source src="https://i.imgur.com/M5UfSIi.mp4" type="video/mp4">
+            <!-- Legendas nativas DESABILITADAS para evitar duplicação -->
+            <track kind="subtitles" src="subtitles/pt-br.vtt" srclang="pt-br" label="Português (Brasil)">
+            <track kind="descriptions" src="subtitles/descriptions-pt-br.vtt" srclang="pt-br" label="Descrição Audiovisual">
+            Seu navegador não suporta o elemento de vídeo.
+        </video>
+        
+        <!-- Legenda customizada como fallback -->
+        <div class="custom-subtitles" id="customSubtitles"></div>
+        
+        <!-- Controles do vídeo -->
+        <div class="video-controls">
+            <button class="sound-toggle" id="soundToggle" title="Volume Médio (50%)">
+                <i class="fas fa-volume-down" id="soundIcon"></i>
+            </button>
+            <button class="skip-video" id="skipVideo" title="Pular Intro">
+                <i class="fas fa-forward"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== TELA DE CARREGAMENTO ===== -->
+    <!-- Overlay fullscreen com animação enquanto o mapa carrega -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text">Carregando Mapa Histórico...</div>
+    </div>
+
+    <!-- ===== CONTAINER PRINCIPAL DA APLICAÇÃO ===== -->
+    <!-- Layout Grid responsivo que organiza header, sidebar e conteúdo principal -->
+    <div class="app-container">
+        
+        <!-- ===== CABEÇALHO FIXO ===== -->
+        <!-- Header com logo e controles de navegação -->
+        <header class="header">
+            <!-- === LOGOTIPO E IDENTIDADE === -->
+            <div class="logo">
+                <!-- Ícone do mapa com gradiente dourado -->
+                <div class="logo-icon">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <!-- Textos da marca -->
+                <div class="logo-content">
+                    <h1>Mapa Histórico do Rio</h1>
+                    <p>Centro da Cidade Imperial</p>
+                </div>
+            </div>
+            
+            <!-- === CONTROLES DE NAVEGAÇÃO === -->
+            <div class="header-controls">
+                
+                <!-- MENU DESKTOP: Visível apenas em telas grandes -->
+                <div class="desktop-menu">
+                    <button class="btn" onclick="resetMap()" title="Voltar à visão inicial do mapa">
+                        <i class="fas fa-home"></i>
+                        Início
+                    </button>
+                    <button class="btn" onclick="toggleImperialFamily()" title="Explorar locais da Família Imperial - foca no Paço Imperial">
+                        <i class="fas fa-crown"></i>
+                        Família Imperial
+                    </button>
+                    <button class="btn" onclick="abrirMemoria()" title="Galeria de fotos históricas do Centro do Rio">
+                        <i class="fas fa-photo-video"></i>
+                        Memória
+                    </button>
+                    <button class="btn" onclick="mostrarHistoriaRJ()" title="Explorar a história do Rio - foca na Praça XV e pontos históricos">
+                        <i class="fas fa-city"></i>
+                        História do Rio de Janeiro
+                    </button>
+                    <button class="btn btn-sala-aula" onclick="window.location.href='html/saladeaula.html'">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        SALA DE AULA
+                    </button>
+                    <!-- Botão Tour 360° -->
+                    <button class="btn btn-tour360" onclick="iniciarTour360()" title="Iniciar tour automático pelos pontos históricos">
+                        <i class="fas fa-street-view"></i>
+                        Tour 360°
+                    </button>
+                    <!-- Botão de tela cheia (desktop) -->
+                    <button class="btn" id="fullscreenBtn" aria-pressed="false" aria-label="Ativar tela cheia" title="Tela cheia (F11)">
+                        <i class="fas fa-expand" id="fullscreenIcon"></i>
+                        
+                    </button>
+                </div>
+                
+                <!-- MENU MOBILE: Menu hamburger para dispositivos móveis -->
+                <div class="mobile-menu">
+                    <!-- Botão hamburger com animação -->
+                    <button class="hamburger-btn" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <!-- Dropdown do menu mobile -->
+                    <div class="mobile-menu-dropdown" id="mobileMenuDropdown">
+                        <button class="mobile-menu-item" onclick="resetMap(); closeMobileMenu()" title="Voltar à visão inicial">
+                            <i class="fas fa-home"></i>
+                            Início
+                        </button>
+                        <button class="mobile-menu-item" onclick="toggleImperialFamily(); closeMobileMenu()" title="Família Imperial → Paço Imperial">
+                            <i class="fas fa-crown"></i>
+                            Família Imperial
+                        </button>
+                        <button class="mobile-menu-item" onclick="abrirMemoria(); closeMobileMenu()" title="Galeria de fotos históricas">
+                            <i class="fas fa-photo-video"></i>
+                            Memória
+                        </button>
+                        <button class="mobile-menu-item" onclick="mostrarHistoriaRJ(); closeMobileMenu()" title="História do Rio → Praça XV">
+                            <i class="fas fa-city"></i>
+                            História do Rio de Janeiro
+                        </button>
+                        <button class="mobile-menu-item mobile-btn-sala-aula" onclick="window.location.href='html/saladeaula.html'; closeMobileMenu()">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            SALA DE AULA
+                        </button>
+                        <button class="mobile-menu-item mobile-btn-tour360" onclick="iniciarTour360(); closeMobileMenu()" title="Tour automático 360°">
+                            <i class="fas fa-street-view"></i>
+                            Tour 360°
+                        </button>
+                        <button class="mobile-menu-item" id="fullscreenBtnMobile" onclick="closeMobileMenu()" aria-pressed="false" aria-label="Ativar tela cheia">
+                            <i class="fas fa-expand" id="fullscreenIconMobile"></i>
+                            Tela Cheia
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ===== BARRA LATERAL DE CONTROLES ===== -->
+        <!-- Sidebar com busca, filtros e legenda -->
+        <div class="sidebar">
+            
+            <!-- === SEÇÃO DE BUSCA === -->
+            <div class="section">
+                <h3 class="section-title">
+                    <i class="fas fa-search"></i>
+                    Buscar Locais
+                </h3>
+                <!-- Container com ícone e input de busca -->
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Digite o nome de um local..." id="searchInput">
+                </div>
+            </div>
+
+            <!-- === SEÇÃO DE CARTEIRINHA === -->
+            <div class="section btn-row" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-sm" onclick="window.location.href='html/cart.html'">
+                    <i class="fas fa-id-card"></i>
+                    Gerar Carteirinha
+                </button>
+                <button class="btn btn-historia btn-sm" onclick="window.open('html/real.html', '_blank')">
+                    <i class="fas fa-scroll"></i>
+                    História Completa
+                </button>
+                <button class="btn btn-sm" onclick="window.location.href='html/eventos.html'" title="Acessar sistema de gerenciamento de eventos">
+                    <i class="fas fa-calendar-check"></i>
+                    Gerenciar Eventos
+                </button>
+            </div>
+
+            <!-- === SEÇÃO DE FILTROS POR CATEGORIA === -->
+            <div class="section">
+                <h3 class="section-title">
+                    <i class="fas fa-filter"></i>
+                    Filtros Inteligentes
+                </h3>
+                <!-- Grid responsivo de botões de filtro -->
+                <div class="filter-grid">
+                    <button class="filter-btn active" onclick="filterCategory('all')" aria-pressed="true"><i class="fa-solid fa-globe"></i><span>Todos</span></button>
+                    <button class="filter-btn" onclick="filterCategory('museum')" aria-pressed="false"><i class="fa-solid fa-landmark"></i><span>Museus</span></button>
+                    <button class="filter-btn" onclick="filterCategory('church')" aria-pressed="false"><i class="fa-solid fa-church"></i><span>Igrejas</span></button>
+                    <button class="filter-btn" onclick="filterCategory('palace')" aria-pressed="false"><i class="fa-solid fa-crown"></i><span>Palácios</span></button>
+                    <button class="filter-btn" onclick="filterCategory('monument')" aria-pressed="false"><i class="fa-solid fa-archway"></i><span>Monumentos</span></button>
+                    <button class="filter-btn" onclick="filterCategory('culture')" aria-pressed="false"><i class="fa-solid fa-masks-theater"></i><span>Cultura</span></button>
+                    <button class="filter-btn" onclick="filterCategory('library')" aria-pressed="false"><i class="fa-solid fa-book"></i><span>Bibliotecas</span></button>
+                    <button class="filter-btn" onclick="filterCategory('square')" aria-pressed="false"><i class="fa-solid fa-square"></i><span>Praças</span></button>
+                    <button class="filter-btn" onclick="filterCategory('bunker')" aria-pressed="false"><i class="fa-solid fa-shield-halved"></i><span>Bunker</span></button>
+                </div>
+            </div>
+
+            <!-- === PAINEL DE ESTATÍSTICAS DINÂMICAS === -->
+            <div class="section stats-section">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    Estatísticas do Mapa
+                </h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="totalLocais">0</span>
+                            <span class="stat-label">Locais Históricos</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-eye"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="locaisVisiveis">0</span>
+                            <span class="stat-label">Visíveis no Mapa</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="periodoMaisAntigo">-</span>
+                            <span class="stat-label">Período Mais Antigo</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-crown"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="categoriaPopular">-</span>
+                            <span class="stat-label">Categoria Popular</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-card-full">
+                        <div class="stat-icon"><i class="fas fa-route"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="distanciaTotal">0 km</span>
+                            <span class="stat-label">Área Coberta pelo Tour</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Mini gráfico de categorias -->
+                <div class="category-chart">
+                    <h4 class="chart-title"><i class="fas fa-chart-pie"></i> Distribuição por Categoria</h4>
+                    <div class="chart-bars" id="categoryBars"></div>
+                </div>
+            </div>
+
+            <!-- === SEÇÃO DE INFORMAÇÕES DINÂMICAS === -->
+            <div id="infoSection" style="display: none;"></div>
+        </div>
+
+        <!-- ===== ÁREA PRINCIPAL DO MAPA ===== -->
+        <!-- Container que abriga o mapa interativo do Leaflet -->
+        <div class="main-content">
+            <!-- Div onde o mapa será renderizado pelo JavaScript -->
+            <div id="map" role="region" aria-label="Mapa interativo do Centro do Rio" tabindex="0"></div>
+            
+            <!-- ===== CENTRAL DE ACESSIBILIDADE PREMIUM ===== -->
+            <div class="accessibility-hub" id="accessibilityHub">
+                <!-- Botão Principal Premium -->
+                <button class="accessibility-trigger" 
+                        id="accessibilityTrigger" 
+                        aria-label="Abrir Central de Acessibilidade" 
+                        aria-expanded="false"
+                        aria-controls="accessibilityPanel"
+                        title="Central de Acessibilidade (Alt + A)">
+                    <div class="trigger-ring"></div>
+                    <div class="trigger-pulse"></div>
+                    <div class="trigger-icon">
+                        <i class="fa-solid fa-universal-access"></i>
+                    </div>
+                    <span class="trigger-label">Acessibilidade</span>
+                </button>
+
+                <!-- Painel Premium de Controles -->
+                <div class="accessibility-panel" id="accessibilityPanel" role="dialog" aria-labelledby="accessibilityTitle">
+                    <!-- Header do Painel -->
+                    <div class="panel-header">
+                        <div class="panel-title" id="accessibilityTitle">
+                            <i class="fa-solid fa-universal-access"></i>
+                            <h3>Central de Acessibilidade</h3>
+                        </div>
+                        <button class="panel-close" id="panelClose" aria-label="Fechar painel">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <!-- Conteúdo do Painel -->
+                    <div class="panel-content">
+                        <!-- SEÇÃO: Visual -->
+                        <div class="control-section">
+                            <h4 class="section-heading">
+                                <i class="fa-solid fa-eye"></i>
+                                Ajustes Visuais
+                            </h4>
+                            
+                            <!-- Alto Contraste -->
+                            <div class="control-item">
+                                <div class="control-info">
+                                    <i class="fa-solid fa-circle-half-stroke"></i>
+                                    <span class="control-label">Alto Contraste</span>
+                                    <span class="control-desc">Aumenta o contraste das cores</span>
+                                </div>
+                                <label class="premium-toggle">
+                                    <input type="checkbox" id="highContrastToggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <!-- Tamanho do Texto -->
+                            <div class="control-item">
+                                <div class="control-info">
+                                    <i class="fa-solid fa-text-height"></i>
+                                    <span class="control-label">Tamanho do Texto</span>
+                                    <span class="control-desc">Ajuste o tamanho da fonte</span>
+                                </div>
+                                <div class="text-size-controls">
+                                    <button class="size-btn" id="decreaseFont" aria-label="Diminuir texto">
+                                        <i class="fa-solid fa-minus"></i>
+                                    </button>
+                                    <span class="size-indicator" id="fontSizeIndicator">100%</span>
+                                    <button class="size-btn" id="increaseFont" aria-label="Aumentar texto">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </button>
+                                    <button class="size-btn reset" id="resetFont" aria-label="Resetar texto">
+                                        <i class="fa-solid fa-rotate-left"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Modo Dislexia -->
+                            <div class="control-item">
+                                <div class="control-info">
+                                    <i class="fa-solid fa-book-open-reader"></i>
+                                    <span class="control-label">Fonte para Dislexia</span>
+                                    <span class="control-desc">Fonte otimizada para leitura</span>
+                                </div>
+                                <label class="premium-toggle">
+                                    <input type="checkbox" id="dyslexiaToggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <!-- Destacar Links -->
+                            <div class="control-item">
+                                <div class="control-info">
+                                    <i class="fa-solid fa-highlighter"></i>
+                                    <span class="control-label">Destacar Links e Foco</span>
+                                    <span class="control-desc">Maior visibilidade de elementos interativos</span>
+                                </div>
+                                <label class="premium-toggle">
+                                    <input type="checkbox" id="highlightToggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- SEÇÃO: Movimento -->
+                        <div class="control-section">
+                            <h4 class="section-heading">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                Animações e Movimento
+                            </h4>
+                            
+                            <!-- Reduzir Animações -->
+                            <div class="control-item">
+                                <div class="control-info">
+                                    <i class="fa-solid fa-gauge-simple"></i>
+                                    <span class="control-label">Reduzir Animações</span>
+                                    <span class="control-desc">Minimiza movimentos na tela</span>
+                                </div>
+                                <label class="premium-toggle">
+                                    <input type="checkbox" id="reduceMotionToggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- SEÇÃO: Áudio -->
+                        <div class="control-section">
+                            <h4 class="section-heading">
+                                <i class="fa-solid fa-volume-high"></i>
+                                Controles de Áudio
+                            </h4>
+                            
+                            <!-- Silenciar Mídias -->
+                            <div class="control-item">
+                                <div class="control-info">
+                                    <i class="fa-solid fa-volume-xmark"></i>
+                                    <span class="control-label">Silenciar Mídias</span>
+                                    <span class="control-desc">Desativa áudios automáticos</span>
+                                </div>
+                                <label class="premium-toggle">
+                                    <input type="checkbox" id="muteMediaToggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <!-- Leitor de Tela -->
+                            <div class="control-item">
+                                <div class="control-info">
+                                    <i class="fa-solid fa-headphones"></i>
+                                    <span class="control-label">Leitor de Tela</span>
+                                    <span class="control-desc">Narração por voz dos elementos</span>
+                                </div>
+                                <label class="premium-toggle">
+                                    <input type="checkbox" id="screenReaderToggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <!-- Opções do Leitor (aparecem quando ativado) -->
+                            <div class="reader-options" id="readerOptions" style="display: none;">
+                                <!-- Leitura Automática -->
+                                <div class="control-item sub-item">
+                                    <div class="control-info">
+                                        <i class="fa-solid fa-magic"></i>
+                                        <span class="control-label">Leitura Automática</span>
+                                        <span class="control-desc">Lê ao passar o mouse</span>
+                                    </div>
+                                    <label class="premium-toggle">
+                                        <input type="checkbox" id="autoReadToggle">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+
+                                <!-- Velocidade da Fala -->
+                                <div class="control-item sub-item">
+                                    <div class="control-info">
+                                        <i class="fa-solid fa-gauge-high"></i>
+                                        <span class="control-label">Velocidade da Fala</span>
+                                    </div>
+                                    <div class="speed-control">
+                                        <input type="range" 
+                                               id="speechRateSlider" 
+                                               min="0.5" 
+                                               max="2" 
+                                               step="0.1" 
+                                               value="1"
+                                               aria-label="Velocidade da fala">
+                                        <span class="speed-value" id="speechRateValue">1.0x</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEÇÃO: Reset -->
+                        <div class="control-section reset-section">
+                            <button class="reset-all-btn" id="resetAllBtn">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                                <span>Restaurar Configurações Padrão</span>
+                            </button>
+                        </div>
+
+                        <!-- Dica de Atalho -->
+                        <div class="panel-hint">
+                            <i class="fa-solid fa-keyboard"></i>
+                            <span>Dica: Use <kbd>Alt</kbd> + <kbd>A</kbd> para abrir/fechar rapidamente</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overlay/Backdrop -->
+                <div class="accessibility-backdrop" id="accessibilityBackdrop"></div>
+            </div>
+            
+            <!-- === RODAPÉ MOBILE DESTACADO === -->
+            <!-- Rodapé visível diretamente sobre o mapa em dispositivos móveis -->
+            <div class="mobile-footer">
+                📚 <strong>Carlos Antonio Oliveira Piquet</strong> - Prof. de História – Faculdade Simonsen | Estudante de Redes de Computadores + MBA em Inteligência Artificial – Faculdade Estácio 💻 - E-mail: carlospiquet.projetos@gmail.com
+            </div>
+            
+            <!-- === RODAPÉ COM CREDENCIAIS === -->
+            <!-- Visível apenas no desktop, contém informações do autor -->
+            <div class="desktop-footer">
+                <div class="footer-content">
+                    <!-- Informações do autor/professor -->
+                    <span class="footer-author">
+                        📚 <strong>Carlos Antonio Oliveira Piquet</strong> - Prof. de História – Faculdade Simonsen | Estudante de Redes de Computadores + MBA em Inteligência Artificial – Faculdade Estácio 💻 - E-mail: carlospiquet.projetos@gmail.com
+                    </span>
+                    
+                    <!-- Links legais -->
+                    <div class="footer-legal">
+                        <div class="copyright-notice">
+                            © 2024 Carlos Antonio de Oliveira Piquet - CNPJ: 27.658.099/0001-70. Todos os direitos reservados.
+                        </div>
+                        <div class="legal-links">
+                            <a href="html/legal.html" title="Informações Legais Completas">⚖️ Informações Legais</a>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS EXTERNOS ===== -->
+    <!-- Leaflet.js: Biblioteca JavaScript para mapas interativos -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- ===== SCRIPT PERSONALIZADO ===== -->
+    <!-- Contém toda a lógica da aplicação -->
+    <script src="js/script.js"></script>
+</body>
+</html>

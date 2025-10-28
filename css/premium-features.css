@@ -1,0 +1,489 @@
+/*
+=====================================================================================
+🌟 RECURSOS PREMIUM - HISTÓRIA DO RIO DE JANEIRO 🌟
+=====================================================================================
+Desenvolvido por: Carlos Antonio de Oliveira Piquet
+CNPJ: 27.658.099/0001-70
+Professor de História - Faculdade Simonsen
+E-mail: carlospiquet.projetos@gmail.com
+
+Este arquivo contém recursos premium exclusivos para uma experiência educativa
+ainda mais rica e interativa.
+=====================================================================================
+*/
+
+/* ===== LOADER PREMIUM ===== */
+.premium-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    transition: opacity 0.5s ease;
+}
+
+.loader-content {
+    text-align: center;
+    color: white;
+}
+
+.loader-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255,255,255,0.3);
+    border-top: 4px solid #FFD700;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 2rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loader-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.loader-subtitle {
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+/* ===== EASTER EGGS PREMIUM ===== */
+.konami-activated {
+    animation: rainbow 2s infinite;
+}
+
+@keyframes rainbow {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
+
+.secret-achievement {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    color: #333;
+    padding: 1rem 1.5rem;
+    border-radius: 15px;
+    font-weight: 600;
+    transform: translateX(400px);
+    transition: transform 0.5s ease;
+    z-index: 1001;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.secret-achievement.show {
+    transform: translateX(0);
+}
+
+/* ===== TOOLTIP PREMIUM ===== */
+.premium-tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.premium-tooltip::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+
+.premium-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0,0,0,0.9);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.premium-tooltip:hover::before,
+.premium-tooltip:hover::after {
+    opacity: 1;
+}
+
+/* ===== ZOOM PREMIUM PARA IMAGENS ===== */
+.zoomable-image {
+    cursor: zoom-in;
+    transition: all 0.3s ease;
+}
+
+.zoomable-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+.image-zoom-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    cursor: zoom-out;
+}
+
+.zoomed-image {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+}
+
+/* ===== MINI MAPA DE NAVEGAÇÃO ===== */
+.mini-map {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    width: 200px;
+    height: 120px;
+    background: rgba(0,0,0,0.8);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    padding: 1rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.mini-map.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.mini-map-title {
+    color: #FFD700;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.mini-map-periods {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mini-period {
+    height: 3px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.mini-period.active {
+    background: #FFD700;
+    height: 5px;
+}
+
+.mini-period:hover {
+    background: rgba(255,255,255,0.6);
+}
+
+/* ===== SISTEMA DE BOOKMARKS ===== */
+.bookmark-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255,215,0,0.9);
+    color: #333;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.bookmark-btn:hover {
+    background: #FFD700;
+    transform: scale(1.1);
+}
+
+.bookmark-btn.bookmarked {
+    background: #FF6B6B;
+    color: white;
+}
+
+.bookmarks-panel {
+    position: fixed;
+    top: 100px;
+    right: -350px;
+    width: 320px;
+    height: calc(100vh - 200px);
+    background: white;
+    border-radius: 15px 0 0 15px;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+    transition: right 0.3s ease;
+    z-index: 1001;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+.bookmarks-panel.open {
+    right: 0;
+}
+
+.bookmarks-title {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.bookmark-item {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 4px solid #3498db;
+}
+
+.bookmark-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.bookmark-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.bookmark-description {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+/* ===== SISTEMA DE NOTAS PREMIUM ===== */
+.note-highlight {
+    background: linear-gradient(120deg, rgba(255,215,0,0.3) 0%, rgba(255,215,0,0.3) 100%);
+    padding: 2px 4px;
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.3s ease;
+}
+
+.note-highlight:hover {
+    background: rgba(255,215,0,0.5);
+}
+
+.user-note {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #FFD700;
+    color: #333;
+    padding: 1rem;
+    border-radius: 10px;
+    max-width: 300px;
+    font-size: 0.9rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 1002;
+}
+
+.note-highlight:hover .user-note {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+.note-arrow {
+    position: absolute;
+    top: -8px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #FFD700;
+}
+
+/* ===== MODO DE APRESENTAÇÃO ===== */
+.presentation-mode {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.presentation-slide {
+    max-width: 80%;
+    text-align: center;
+    opacity: 0;
+    transform: translateX(100px);
+    transition: all 0.5s ease;
+}
+
+.presentation-slide.active {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.presentation-controls {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 1rem;
+}
+
+.presentation-btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.presentation-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* ===== RESPONSIVE PREMIUM ===== */
+@media (max-width: 768px) {
+    .mini-map {
+        width: 150px;
+        height: 80px;
+        padding: 0.5rem;
+    }
+    
+    .bookmarks-panel {
+        width: 280px;
+        right: -300px;
+    }
+    
+    .premium-tooltip::before {
+        bottom: 130%;
+        font-size: 0.8rem;
+        max-width: 200px;
+        white-space: normal;
+    }
+    
+    .user-note {
+        max-width: 250px;
+        font-size: 0.8rem;
+    }
+}
+
+/* ===== PRINT PREMIUM ===== */
+@media print {
+    .premium-loader,
+    .premium-help-btn,
+    .dark-mode-toggle,
+    .period-navigation,
+    .mini-map,
+    .bookmarks-panel,
+    .particles-container {
+        display: none !important;
+    }
+    
+    .reading-progress {
+        display: none !important;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .period {
+        page-break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #ccc;
+    }
+}
+
+/* ===== ANIMAÇÕES EXTRAS ===== */
+.floating-element {
+    animation: float-gentle 3s ease-in-out infinite;
+}
+
+@keyframes float-gentle {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.glow-effect {
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 5px #FFD700, 0 0 10px #FFD700, 0 0 15px #FFD700; }
+    to { text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700, 0 0 30px #FFD700; }
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.5s ease-out;
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(-50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.slide-in-right {
+    animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
