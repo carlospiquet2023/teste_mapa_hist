@@ -1768,6 +1768,7 @@ function criarMarcadores() {
             minWidth: 280,              // Largura mínima para garantir legibilidade
             autoPan: false,             // Desabilitar auto-centralizar no mapa para popup livre
             closeOnClick: false,        // Não fechar popup ao clicar no mapa
+            closeButton: false,         // Remover botão de fechar padrão do Leaflet
             keepInView: false,          // Permitir popup fora da view do mapa
             className: 'popup-centralizado popup-arrastavel' // Classe para estilização específica e arrastar
         };
