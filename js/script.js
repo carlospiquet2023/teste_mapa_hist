@@ -1758,11 +1758,10 @@ function criarMarcadores() {
         const popupOptions = {
             maxWidth: 320,              // Largura máxima para controlar o tamanho
             minWidth: 280,              // Largura mínima para garantir legibilidade
-            autoPan: true,              // Auto-centralizar no mapa
-            autoPanPaddingTopLeft: [50, 50],  // Padding para evitar bordas
-            autoPanPaddingBottomRight: [50, 50],
-            keepInView: true,           // Manter popup no view do mapa
-            className: 'popup-centralizado' // Classe para estilização específica
+            autoPan: false,             // Desabilitar auto-centralizar no mapa para popup livre
+            closeOnClick: false,        // Não fechar popup ao clicar no mapa
+            keepInView: false,          // Permitir popup fora da view do mapa
+            className: 'popup-centralizado popup-arrastavel' // Classe para estilização específica e arrastar
         };
         
         marcador.bindPopup(popupContent, popupOptions);
@@ -1771,17 +1770,51 @@ function criarMarcadores() {
         marcador.on('popupopen', function() {
             inicializarGaleriaImagens();
             
-            // Centralizar o mapa no ponto após abrir o popup
-            setTimeout(() => {
-                // Ajustar offset para centralizar considerando o tamanho do popup
-                const popupHeight = document.querySelector('.leaflet-popup').offsetHeight;
-                map.panTo(ponto.coords, {
-                    animate: true,
-                    duration: 0.5,
-                    // Offset vertical para centralizar popup na tela
-                    offset: [0, -popupHeight/4]
-                });
-            }, 100);
+            // Tornar o popup arrastável
+            const popupElement = document.querySelector('.leaflet-popup');
+            const contentWrapper = popupElement.querySelector('.leaflet-popup-content-wrapper');
+            
+            if (popupElement && contentWrapper) {
+                // Definir posição absoluta para permitir arrastar
+                popupElement.style.position = 'absolute';
+                popupElement.style.zIndex = '1000';
+                
+                let isDragging = false;
+                let startX, startY, initialLeft, initialTop;
+                
+                // Função para iniciar arrastar
+                const startDrag = (e) => {
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    const rect = popupElement.getBoundingClientRect();
+                    initialLeft = rect.left;
+                    initialTop = rect.top;
+                    e.preventDefault(); // Prevenir seleção de texto
+                };
+                
+                // Função para mover
+                const drag = (e) => {
+                    if (!isDragging) return;
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    popupElement.style.left = (initialLeft + dx) + 'px';
+                    popupElement.style.top = (initialTop + dy) + 'px';
+                };
+                
+                // Função para parar arrastar
+                const stopDrag = () => {
+                    isDragging = false;
+                };
+                
+                // Adicionar event listeners
+                contentWrapper.addEventListener('mousedown', startDrag);
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', stopDrag);
+                
+                // Cursor para indicar arrastável
+                contentWrapper.style.cursor = 'move';
+            }
         });
 
         // Evento de clique usando a função centralizada

@@ -1372,6 +1372,16 @@ body {
     }
 }
 
+/* === POPUP ARRASTÁVEL === */
+.popup-arrastavel .leaflet-popup-content-wrapper {
+    cursor: move !important;
+    user-select: none !important;
+}
+
+.popup-arrastavel .leaflet-popup-content-wrapper:active {
+    cursor: grabbing !important;
+}
+
 /* === SIDEBAR COMPONENTS === */
 .section {
     margin-bottom: var(--space-8);
