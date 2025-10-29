@@ -1777,7 +1777,10 @@ function criarMarcadores() {
             if (popupElement && contentWrapper) {
                 // Definir posição absoluta para permitir arrastar
                 popupElement.style.position = 'absolute';
-                popupElement.style.zIndex = '1000';
+                // Garantir z-index alto para que o popup (e seu botão de fechar) fiquem acima do header e outros elementos
+                popupElement.style.zIndex = '2200';
+                // Permitir que conteúdos como o botão de fechar possam transbordar sem serem cortados
+                popupElement.style.overflow = 'visible';
                 
                 let isDragging = false;
                 let startX, startY, initialLeft, initialTop;

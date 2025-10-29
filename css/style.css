@@ -1192,7 +1192,8 @@ body {
     grid-area: main;
     position: relative;
     margin-top: 80px;
-    overflow: hidden;
+    /* Permitir que popups e elementos posicionados escapem do contêiner sem serem cortados */
+    overflow: visible !important;
 }
 
 #map {
@@ -1331,6 +1332,79 @@ body {
         background: rgba(255, 215, 0, 0.3) !important;
     }
 }
+
+/* ===== Ajustes para posicionar o botão fechar ao lado do título do popup ===== */
+/* Garante que o botão não seja cortado e fique alinhado com o título em todas as larguras */
+.leaflet-popup {
+    overflow: visible !important; /* evita que o botão seja cortado fora do contêiner */
+}
+
+.leaflet-popup-content-wrapper {
+    box-sizing: border-box;
+    /* cria espaço no topo para um cabeçalho visual onde o botão ficará alinhado */
+    padding-top: 44px !important;
+}
+
+.leaflet-popup-content {
+    position: relative;
+    padding-right: 56px !important; /* espaço para o botão de fechar sem sobrepor texto */
+    padding-top: 6px !important;
+}
+
+.leaflet-popup-content h3 {
+    display: inline-block;
+    margin: 0 !important;
+    vertical-align: middle;
+    font-size: 1.12rem !important;
+    line-height: 1.1 !important;
+}
+
+/* Reposiciona o botão de fechar para ficar visualmente ao lado/direita do título */
+.leaflet-container .leaflet-popup-close-button {
+    position: absolute !important;
+    top: 12px !important; /* alinha verticalmente com o título */
+    right: 14px !important; /* distância da borda direita do popup */
+    transform: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 2220 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25) !important;
+}
+
+/* Em telas grandes, mantém o espaçamento e tamanho apropriado */
+@media (min-width: 769px) {
+    .leaflet-popup-content-wrapper {
+        padding-top: 48px !important;
+    }
+    .leaflet-container .leaflet-popup-close-button {
+        top: 16px !important;
+        right: 16px !important;
+        width: 34px !important;
+        height: 34px !important;
+        line-height: 18px !important;
+    }
+}
+
+/* Em telas pequenas, reduzimos ligeiramente o padding mas garantimos visibilidade do botão */
+@media (max-width: 768px) {
+    .leaflet-popup-content {
+        padding-right: 48px !important;
+    }
+    .leaflet-container .leaflet-popup-close-button {
+        top: 10px !important;
+        right: 10px !important;
+        width: 36px !important;
+        height: 36px !important;
+    }
+}
+
+/* Caso o título seja longo, força quebra e mantém botão à direita */
+.leaflet-popup-content h3 {
+    max-width: calc(100% - 72px) !important; /* deixa espaço para o botão */
+    overflow-wrap: break-word !important;
+}
+
 
 /* Estilo específico para popups centralizados */
 .popup-centralizado {
