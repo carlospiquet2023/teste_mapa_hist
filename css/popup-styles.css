@@ -95,3 +95,40 @@
         height: auto;
     }
 }
+
+/* Limitação de altura para popups em telas pequenas */
+.leaflet-popup-content {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* Ajustes extras para telas muito pequenas */
+@media (max-width: 480px) {
+    .popup-container {
+        max-width: 95vw;
+        padding: 8px;
+    }
+    
+    .popup-title {
+        font-size: 1rem;
+    }
+    
+    .popup-subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .popup-description {
+        font-size: 0.85rem;
+    }
+    
+    .popup-image {
+        max-width: 95vw;
+        height: auto;
+        max-height: 150px;
+    }
+    
+    .popup-button {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+}
