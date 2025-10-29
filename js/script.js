@@ -1110,6 +1110,13 @@ function centrarEAbrirPopup(coords, marcador, zoom = 17) {
     }, 100);
 }
 
+/**
+ * Fecha o popup atualmente aberto
+ */
+function fecharPopupAtual() {
+    map.closePopup();
+}
+
 //=============================================================================
 // 🏛️ BASE DE DADOS HISTÓRICOS
 //=============================================================================
@@ -1732,6 +1739,7 @@ function criarMarcadores() {
         // Popup com informações completas - contraste garantido usando !important no CSS
         let popupContent = `
             <div class="popup-container">
+                <button class="popup-close-inside" onclick="fecharPopupAtual()">×</button>
                 <h3 class="popup-title">${ponto.nome}</h3>
                 <p class="popup-subtitle">📅 ${ponto.periodo}</p>`;
         
